@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free PDF to Word Converter — FreeToolHub</title>
+<meta name="description" content="Extract text from PDF and convert to editable Word document free online. No signup, no server upload.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.upload-zone { border: 2px dashed var(--gray-200); border-radius: var(--radius); padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--gray-50); }
+.upload-zone:hover, .upload-zone.drag { border-color: var(--indigo); background: var(--indigo-light); }
+#extracted-text { width: 100%; min-height: 320px; padding: 16px; font-size: 14px; font-family: 'Inter', sans-serif; border: 1px solid var(--gray-200); border-radius: var(--radius); resize: vertical; outline: none; line-height: 1.8; color: var(--navy); background: white; }
+#extracted-text:focus { border-color: var(--indigo); }
+.page-badge { display: inline-block; background: var(--indigo-light); color: var(--indigo); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+<div class="tool-hero">
+  <span class="badge-free">Free · Private · No Server Upload</span>
+  <h1>PDF to Word Converter</h1>
+  <p>Extract all text from your PDF and download as an editable .txt or .doc file — works in your browser</p>
+</div>
+<div class="tool-body">
+  <div class="card" id="upload-card">
+    <div class="section-title">Upload your PDF</div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-input').click()">
+      <svg style="width:48px;height:48px;stroke:var(--gray-400);fill:none;stroke-width:1.5;display:block;margin:0 auto 12px;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <p style="color:var(--gray-600);font-size:15px;font-weight:500;"><span style="color:var(--indigo);font-weight:600;">Click to upload PDF</span></p>
+      <p style="font-size:12px;color:var(--gray-400);margin-top:4px;">PDF file — your file never leaves your device</p>
+    </div>
+    <input type="file" id="pdf-input" accept=".pdf,application/pdf" style="display:none;" onchange="handlePDF(this)">
+  </div>
+
+  <div class="card" id="loading-card" style="display:none;text-align:center;padding:40px;">
+    <div style="font-size:15px;color:var(--gray-600);">Reading PDF pages...</div>
+    <div style="margin-top:12px;height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden;">
+      <div id="progress-bar" style="height:100%;background:var(--indigo);border-radius:2px;width:0%;transition:width 0.3s;"></div>
+    </div>
+    <div id="progress-label" style="font-size:12px;color:var(--gray-400);margin-top:8px;">Page 0 of 0</div>
+  </div>
+
+  <div class="card" id="result-card" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div>
+        <div class="section-title" style="margin:0;border:none;padding:0;">Extracted Text</div>
+        <div id="page-info" style="font-size:12px;color:var(--gray-400);margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" style="padding:7px 14px;font-size:13px;" onclick="copyAll()">Copy All</button>
+        <button class="btn btn-primary" style="padding:7px 14px;font-size:13px;" onclick="downloadDoc()">Download .txt</button>
+      </div>
+    </div>
+    <textarea id="extracted-text" placeholder="Extracted text will appear here..."></textarea>
+    <p style="font-size:12px;color:var(--gray-400);margin-top:8px;">You can edit the text above before downloading.</p>
+  </div>
+
+  <div class="card" style="background:var(--indigo-light);border-color:#C7D2FE;">
+    <div style="font-size:14px;font-weight:600;color:#3730A3;margin-bottom:8px;">Important Note</div>
+    <ul style="font-size:13px;color:#4338CA;padding-left:16px;line-height:2;">
+      <li>Works best with text-based PDFs (not scanned images)</li>
+      <li>Scanned PDFs (photos of documents) need OCR — try Google Docs for those</li>
+      <li>Formatting like tables, columns may not be preserved</li>
+      <li>Your PDF is never uploaded — everything runs in your browser</li>
+    </ul>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="../js/main.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let fileName = 'document';
+
+async function handlePDF(input) {
+  const file = input.files[0];
+  if (!file) return;
+  fileName = file.name.replace('.pdf','');
+
+  document.getElementById('upload-card').style.display = 'none';
+  document.getElementById('loading-card').style.display = 'block';
+  document.getElementById('result-card').style.display = 'none';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const totalPages = pdf.numPages;
+  let fullText = '';
+
+  for (let i = 1; i <= totalPages; i++) {
+    const pct = Math.round((i / totalPages) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `Page ${i} of ${totalPages}`;
+
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+  }
+
+  document.getElementById('loading-card').style.display = 'none';
+  document.getElementById('result-card').style.display = 'block';
+  document.getElementById('extracted-text').value = fullText.trim();
+  document.getElementById('page-info').textContent = `${totalPages} pages extracted · ${fullText.trim().split(/\s+/).length.toLocaleString()} words`;
+}
+
+function copyAll() {
+  const text = document.getElementById('extracted-text').value;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy All', 1500);
+  });
+}
+
+function downloadDoc() {
+  const text = document.getElementById('extracted-text').value;
+  const blob = new Blob([text], { type: 'text/plain' });
+  downloadBlob(blob, fileName + '-extracted.txt');
+}
+
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file?.type === 'application/pdf') {
+    document.getElementById('pdf-input').files = e.dataTransfer.files;
+    handlePDF(document.getElementById('pdf-input'));
+  }
+});
+</script>
+</body>
+</html>

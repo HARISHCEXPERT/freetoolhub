@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Image Compressor — Reduce File Size — FreeToolHub</title>
+<meta name="description" content="Compress JPG, PNG images online free. Reduce file size without losing quality. No upload, works in browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.upload-zone { border: 2px dashed var(--gray-200); border-radius: var(--radius); padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--gray-50); }
+.upload-zone:hover, .upload-zone.drag { border-color: var(--indigo); background: var(--indigo-light); }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-box { border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+.compare-box img { width: 100%; display: block; max-height: 240px; object-fit: contain; background: var(--gray-50); }
+.compare-label { padding: 10px 12px; font-size: 12px; font-weight: 600; background: var(--gray-50); }
+.compare-size { font-size: 11px; color: var(--gray-400); font-weight: 400; }
+.savings-badge { display: inline-block; background: var(--green-light); color: #065F46; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 100px; }
+.file-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
+.file-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+<div class="tool-hero">
+  <span class="badge-free">Free · No Upload · Instant</span>
+  <h1>Image Compressor</h1>
+  <p>Reduce JPG & PNG file size without losing visible quality. Perfect for email, WhatsApp, and web uploads.</p>
+</div>
+<div class="tool-body">
+  <div class="card" id="upload-card">
+    <div class="section-title">Upload Image</div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <svg style="width:44px;height:44px;stroke:var(--gray-400);fill:none;stroke-width:1.5;display:block;margin:0 auto 12px;" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <p style="color:var(--gray-600);font-size:15px;"><span style="color:var(--indigo);font-weight:600;">Click to upload</span> or drag & drop</p>
+      <p style="font-size:12px;color:var(--gray-400);margin-top:4px;">JPG, PNG, WEBP — image stays on your device</p>
+    </div>
+    <input type="file" id="file-input" accept="image/*" multiple style="display:none;" onchange="handleFiles(this.files)">
+  </div>
+
+  <div class="card" id="options-card" style="display:none;">
+    <div class="section-title">Compression Settings</div>
+    <label>Quality: <strong id="quality-val">80%</strong></label>
+    <input type="range" min="10" max="100" value="80" id="quality" step="5"
+      oninput="document.getElementById('quality-val').textContent=this.value+'%'; recompress()">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-400);margin-top:-8px;margin-bottom:16px;">
+      <span>Smaller file</span><span>Better quality</span>
+    </div>
+    <label>Max Width (optional)</label>
+    <select id="max-width" onchange="recompress()">
+      <option value="0">Keep original size</option>
+      <option value="1920">1920px (Full HD)</option>
+      <option value="1280">1280px (HD)</option>
+      <option value="800">800px (Web)</option>
+      <option value="600">600px (Email)</option>
+    </select>
+  </div>
+
+  <div id="results-wrap" style="display:none;">
+    <div class="card">
+      <div class="section-title">Results</div>
+      <div id="files-list"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="dl-all-btn" onclick="downloadAll()">Download All Compressed</button>
+        <button class="btn btn-secondary" onclick="clearAll()">Clear & Upload New</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+let files = [];
+let compressed = [];
+
+function handleFiles(fileList) {
+  files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  document.getElementById('options-card').style.display = 'block';
+  recompress();
+}
+
+function recompress() {
+  if (!files.length) return;
+  const quality = parseInt(document.getElementById('quality').value) / 100;
+  const maxW = parseInt(document.getElementById('max-width').value);
+  compressed = [];
+  const resultsWrap = document.getElementById('results-wrap');
+  const filesList = document.getElementById('files-list');
+  filesList.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">Compressing...</div>';
+  resultsWrap.style.display = 'block';
+
+  let done = 0;
+  files.forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (maxW && w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const origKB = Math.round(file.size / 1024);
+        const compKB = Math.round((compressedDataUrl.length * 3 / 4) / 1024);
+        const savings = Math.round((1 - compKB / origKB) * 100);
+        compressed[idx] = { dataUrl: compressedDataUrl, name: file.name.replace(/\.[^.]+$/, '') + '-compressed.jpg', origKB, compKB, savings, w, h };
+        done++;
+        if (done === files.length) renderResults();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderResults() {
+  const list = document.getElementById('files-list');
+  list.innerHTML = compressed.map((c, i) => `
+    <div class="file-row">
+      <div style="flex:1;">
+        <div style="font-weight:500;font-size:13px;">${files[i].name}</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${c.w}×${c.h}px</div>
+      </div>
+      <div style="text-align:right;margin:0 16px;">
+        <div style="font-size:12px;color:var(--gray-400);">${c.origKB} KB → <strong style="color:var(--navy);">${c.compKB} KB</strong></div>
+        <span class="savings-badge" style="font-size:11px;padding:2px 8px;">${c.savings > 0 ? '↓ ' + c.savings + '% smaller' : 'No reduction'}</span>
+      </div>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:12px;" onclick="downloadOne(${i})">Download</button>
+    </div>
+  `).join('');
+}
+
+function downloadOne(i) {
+  const c = compressed[i];
+  const a = document.createElement('a');
+  a.href = c.dataUrl;
+  a.download = c.name;
+  a.click();
+}
+
+function downloadAll() {
+  compressed.forEach((c, i) => setTimeout(() => downloadOne(i), i * 300));
+}
+
+function clearAll() {
+  files = []; compressed = [];
+  document.getElementById('options-card').style.display = 'none';
+  document.getElementById('results-wrap').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+</script>
+</body>
+</html>

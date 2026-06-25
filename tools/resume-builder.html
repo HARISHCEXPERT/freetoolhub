@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Resume Builder — FreeToolHub</title>
+<meta name="description" content="Build a professional resume online for free. No signup needed. Download as PDF instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  #preview { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; font-size: 13px; line-height: 1.6; }
+  #preview h2 { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+  #preview .contact-line { color: var(--gray-600); font-size: 12px; margin-bottom: 16px; }
+  #preview .section { margin-bottom: 16px; }
+  #preview .sec-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--indigo); border-bottom: 2px solid var(--indigo); padding-bottom: 4px; margin-bottom: 10px; }
+  #preview .job { margin-bottom: 10px; }
+  #preview .job-title { font-weight: 700; font-size: 13px; }
+  #preview .job-sub { color: var(--gray-600); font-size: 12px; }
+  #preview ul { padding-left: 16px; }
+  #preview ul li { margin-bottom: 3px; }
+  .skill-tag { display: inline-block; background: var(--indigo-light); color: var(--indigo); font-size: 11px; padding: 3px 10px; border-radius: 100px; margin: 2px; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+
+<div class="tool-hero">
+  <span class="badge-free">100% Free</span>
+  <h1>Resume Builder</h1>
+  <p>Fill in your details, preview live, and download as PDF — no signup needed</p>
+</div>
+
+<div class="tool-body" style="max-width:1100px; display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;">
+
+  <!-- LEFT: FORM -->
+  <div>
+
+    <div class="card">
+      <div class="section-title">Personal Information</div>
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Rahul Sharma" oninput="updatePreview()">
+      <label>Job Title</label>
+      <input type="text" id="jobtitle" placeholder="Software Developer" oninput="updatePreview()">
+      <div class="row">
+        <div>
+          <label>Email</label>
+          <input type="email" id="email" placeholder="rahul@email.com" oninput="updatePreview()">
+        </div>
+        <div>
+          <label>Phone</label>
+          <input type="text" id="phone" placeholder="+91 98765 43210" oninput="updatePreview()">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>City</label>
+          <input type="text" id="city" placeholder="Mumbai" oninput="updatePreview()">
+        </div>
+        <div>
+          <label>LinkedIn / Portfolio</label>
+          <input type="text" id="linkedin" placeholder="linkedin.com/in/rahul" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Professional Summary</div>
+      <textarea id="summary" rows="3" placeholder="Write 2-3 lines about yourself and your experience..." oninput="updatePreview()"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Work Experience</div>
+      <label>Job Title</label>
+      <input type="text" id="exp1title" placeholder="Frontend Developer" oninput="updatePreview()">
+      <div class="row">
+        <div>
+          <label>Company</label>
+          <input type="text" id="exp1company" placeholder="Tech Corp Pvt Ltd" oninput="updatePreview()">
+        </div>
+        <div>
+          <label>Duration</label>
+          <input type="text" id="exp1dur" placeholder="Jan 2022 – Present" oninput="updatePreview()">
+        </div>
+      </div>
+      <label>Key Responsibilities</label>
+      <textarea id="exp1desc" rows="3" placeholder="• Built responsive web apps using React&#10;• Improved page speed by 40%&#10;• Led team of 3 developers" oninput="updatePreview()"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Education</div>
+      <label>Degree</label>
+      <input type="text" id="degree" placeholder="B.Tech in Computer Science" oninput="updatePreview()">
+      <div class="row">
+        <div>
+          <label>College / University</label>
+          <input type="text" id="college" placeholder="Mumbai University" oninput="updatePreview()">
+        </div>
+        <div>
+          <label>Year</label>
+          <input type="text" id="gradyear" placeholder="2021" oninput="updatePreview()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Skills</div>
+      <label>Skills (comma separated)</label>
+      <input type="text" id="skills" placeholder="HTML, CSS, JavaScript, React, Node.js" oninput="updatePreview()">
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:14px;" onclick="window.print()">
+      Download as PDF (Print → Save as PDF)
+    </button>
+  </div>
+
+  <!-- RIGHT: PREVIEW -->
+  <div style="position:sticky; top:80px;">
+    <div style="font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">Live Preview</div>
+    <div id="preview">
+      <h2 id="prev-name">Your Name</h2>
+      <div class="contact-line" id="prev-contact">job title &nbsp;|&nbsp; email &nbsp;|&nbsp; phone &nbsp;|&nbsp; city</div>
+
+      <div class="section" id="prev-summary-wrap">
+        <div class="sec-head">Summary</div>
+        <p id="prev-summary">Your professional summary will appear here...</p>
+      </div>
+
+      <div class="section" id="prev-exp-wrap">
+        <div class="sec-head">Experience</div>
+        <div class="job">
+          <div class="job-title" id="prev-exp1title">Job Title</div>
+          <div class="job-sub" id="prev-exp1sub">Company &nbsp;·&nbsp; Duration</div>
+          <ul id="prev-exp1desc"><li>Responsibilities will appear here</li></ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sec-head">Education</div>
+        <div class="job">
+          <div class="job-title" id="prev-degree">Degree</div>
+          <div class="job-sub" id="prev-college">College &nbsp;·&nbsp; Year</div>
+        </div>
+      </div>
+
+      <div class="section" id="prev-skills-wrap">
+        <div class="sec-head">Skills</div>
+        <div id="prev-skills"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+function updatePreview() {
+  const val = id => document.getElementById(id).value.trim();
+
+  document.getElementById('prev-name').textContent = val('name') || 'Your Name';
+
+  const contactParts = [val('jobtitle'), val('email'), val('phone'), val('city'), val('linkedin')].filter(Boolean);
+  document.getElementById('prev-contact').textContent = contactParts.join('  |  ') || 'job title | email | phone | city';
+
+  document.getElementById('prev-summary').textContent = val('summary') || 'Your professional summary will appear here...';
+
+  document.getElementById('prev-exp1title').textContent = val('exp1title') || 'Job Title';
+  const expSub = [val('exp1company'), val('exp1dur')].filter(Boolean).join('  ·  ');
+  document.getElementById('prev-exp1sub').textContent = expSub || 'Company · Duration';
+
+  const desc = val('exp1desc');
+  const ul = document.getElementById('prev-exp1desc');
+  ul.innerHTML = '';
+  if (desc) {
+    desc.split('\n').filter(l => l.trim()).forEach(line => {
+      const li = document.createElement('li');
+      li.textContent = line.replace(/^•\s*/, '');
+      ul.appendChild(li);
+    });
+  } else {
+    ul.innerHTML = '<li>Responsibilities will appear here</li>';
+  }
+
+  const degParts = [val('degree')].filter(Boolean);
+  document.getElementById('prev-degree').textContent = val('degree') || 'Degree';
+  const collegeSub = [val('college'), val('gradyear')].filter(Boolean).join('  ·  ');
+  document.getElementById('prev-college').textContent = collegeSub || 'College · Year';
+
+  const skills = val('skills');
+  const skillsDiv = document.getElementById('prev-skills');
+  skillsDiv.innerHTML = '';
+  if (skills) {
+    skills.split(',').map(s => s.trim()).filter(Boolean).forEach(s => {
+      const span = document.createElement('span');
+      span.className = 'skill-tag';
+      span.textContent = s;
+      skillsDiv.appendChild(span);
+    });
+  }
+}
+updatePreview();
+</script>
+
+<style>
+@media print {
+  nav, .tool-hero, form, .btn, div:not(#preview):not(.tool-body) { display: none !important; }
+  #preview { border: none; padding: 0; }
+  body { padding: 0; }
+}
+</style>
+</body>
+</html>

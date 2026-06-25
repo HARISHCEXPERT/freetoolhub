@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free GST Calculator India — FreeToolHub</title>
+<meta name="description" content="Calculate GST instantly online. Add or remove GST from any amount. All GST slabs supported — 5%, 12%, 18%, 28%. Free, no signup.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .mode-row { display: flex; background: var(--gray-100); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; }
+  .mode-btn { flex: 1; padding: 8px; text-align: center; border: none; background: none; border-radius: 6px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; color: var(--gray-600); transition: all 0.15s; }
+  .mode-btn.active { background: white; color: var(--navy); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .result-box { background: var(--indigo-light); border: 1px solid #C7D2FE; border-radius: var(--radius); padding: 24px; text-align: center; }
+  .result-label { font-size: 13px; color: #4338CA; font-weight: 500; margin-bottom: 4px; }
+  .result-amount { font-size: 36px; font-weight: 800; color: var(--indigo); letter-spacing: -1px; }
+  .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .breakdown-item { background: white; border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+  .breakdown-label { font-size: 11px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .breakdown-val { font-size: 18px; font-weight: 700; color: var(--navy); }
+  .slab-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+  .slab-btn { padding: 10px 4px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s; color: var(--navy); }
+  .slab-btn.active { border-color: var(--indigo); background: var(--indigo-light); color: var(--indigo); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+
+<div class="tool-hero">
+  <span class="badge-free">All GST Slabs · Instant</span>
+  <h1>GST Calculator</h1>
+  <p>Add GST to a price or remove GST from a GST-inclusive amount — all slabs supported</p>
+</div>
+
+<div class="tool-body" style="max-width:560px;">
+
+  <div class="card">
+    <div class="section-title">Calculate Mode</div>
+    <div class="mode-row">
+      <button class="mode-btn active" id="mode-add" onclick="setMode('add')">Add GST (+ GST)</button>
+      <button class="mode-btn" id="mode-remove" onclick="setMode('remove')">Remove GST (– GST)</button>
+    </div>
+
+    <label id="amt-label">Original Amount (₹)</label>
+    <input type="number" id="amount" placeholder="Enter amount" oninput="calculate()" min="0" style="font-size:20px;font-weight:700;padding:14px;">
+
+    <div class="section-title" style="margin-top:4px;">GST Rate</div>
+    <div class="slab-grid">
+      <button class="slab-btn" onclick="setSlab(0,this)">0%<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Exempt</div></button>
+      <button class="slab-btn" onclick="setSlab(5,this)">5%<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Essential</div></button>
+      <button class="slab-btn" onclick="setSlab(12,this)">12%<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Standard</div></button>
+      <button class="slab-btn active" onclick="setSlab(18,this)">18%<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Services</div></button>
+      <button class="slab-btn" onclick="setSlab(28,this)" style="grid-column:span 2;">28%<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Luxury / Sin goods</div></button>
+      <button class="slab-btn" onclick="setSlab('custom',this)" style="grid-column:span 2;">Custom %<div style="font-size:10px;color:var(--gray-400);font-weight:400;">Enter manually</div></button>
+    </div>
+
+    <div id="custom-wrap" style="display:none;">
+      <label>Custom GST %</label>
+      <input type="number" id="custom-rate" placeholder="e.g. 3" oninput="calculate()" min="0" max="100">
+    </div>
+  </div>
+
+  <div class="result-box" id="result-box" style="display:none;">
+    <div class="result-label" id="result-label">Total Amount (with GST)</div>
+    <div class="result-amount" id="result-total">₹0</div>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <div class="breakdown-label">Base Amount</div>
+        <div class="breakdown-val" id="res-base">₹0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">GST Amount</div>
+        <div class="breakdown-val" id="res-gst">₹0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">CGST (half)</div>
+        <div class="breakdown-val" id="res-cgst">₹0</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-label">SGST (half)</div>
+        <div class="breakdown-val" id="res-sgst">₹0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="section-title">Common GST Rates Guide</div>
+    <div style="font-size:13px;line-height:2;color:var(--gray-600);">
+      <div><strong style="color:var(--navy);">0%</strong> — Milk, eggs, fruits, vegetables, newspapers</div>
+      <div><strong style="color:var(--navy);">5%</strong> — Edible oils, sugar, tea, coffee, medicines</div>
+      <div><strong style="color:var(--navy);">12%</strong> — Computers, processed food, mobile phones</div>
+      <div><strong style="color:var(--navy);">18%</strong> — IT services, hotels, restaurants, most services</div>
+      <div><strong style="color:var(--navy);">28%</strong> — Cars, tobacco, aerated drinks, luxury items</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+let mode = 'add';
+let gstRate = 18;
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-add').classList.toggle('active', m === 'add');
+  document.getElementById('mode-remove').classList.toggle('active', m === 'remove');
+  document.getElementById('amt-label').textContent = m === 'add' ? 'Original Amount (₹)' : 'GST-Inclusive Amount (₹)';
+  document.getElementById('result-label').textContent = m === 'add' ? 'Total Amount (with GST)' : 'Original Amount (without GST)';
+  calculate();
+}
+
+function setSlab(rate, btn) {
+  document.querySelectorAll('.slab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (rate === 'custom') {
+    document.getElementById('custom-wrap').style.display = 'block';
+    gstRate = parseFloat(document.getElementById('custom-rate').value) || 0;
+  } else {
+    document.getElementById('custom-wrap').style.display = 'none';
+    gstRate = rate;
+  }
+  calculate();
+}
+
+function calculate() {
+  const amt = parseFloat(document.getElementById('amount').value);
+  if (isNaN(amt) || amt < 0) { document.getElementById('result-box').style.display = 'none'; return; }
+
+  let base, gstAmt, total;
+  if (mode === 'add') {
+    base = amt;
+    gstAmt = base * gstRate / 100;
+    total = base + gstAmt;
+  } else {
+    total = amt;
+    base = amt / (1 + gstRate / 100);
+    gstAmt = total - base;
+  }
+
+  const fmt = v => '₹' + v.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('result-total').textContent = mode === 'add' ? fmt(total) : fmt(base);
+  document.getElementById('res-base').textContent = fmt(base);
+  document.getElementById('res-gst').textContent = fmt(gstAmt);
+  document.getElementById('res-cgst').textContent = fmt(gstAmt / 2);
+  document.getElementById('res-sgst').textContent = fmt(gstAmt / 2);
+  document.getElementById('result-label').textContent = mode === 'add' ? 'Total Amount (with GST)' : 'Original Amount (without GST)';
+  document.getElementById('result-box').style.display = 'block';
+}
+</script>
+</body>
+</html>

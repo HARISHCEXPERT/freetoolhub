@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aadhar & PAN Card Form Helper — FreeToolHub</title>
+<meta name="description" content="Free guide to fill Aadhar correction form, PAN card form, PAN address change. Step by step help. No signup.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.form-tab-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.form-tab { padding: 9px 18px; border: 1.5px solid var(--gray-200); border-radius: 100px; background: white; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; color: var(--gray-600); transition: all 0.15s; }
+.form-tab.active { background: var(--indigo); color: white; border-color: var(--indigo); }
+.step-card { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; display: flex; gap: 14px; }
+.step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--indigo); color: white; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.step-desc { font-size: 13px; color: var(--gray-600); line-height: 1.6; }
+.doc-chip { display: inline-block; background: var(--gray-100); color: var(--navy); font-size: 12px; padding: 3px 10px; border-radius: 100px; margin: 2px; font-weight: 500; }
+.doc-chip.green { background: var(--green-light); color: #065F46; }
+.link-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--indigo); color: white; font-size: 13px; font-weight: 600; padding: 10px 18px; border-radius: var(--radius-sm); text-decoration: none; transition: background 0.15s; }
+.link-btn:hover { background: var(--indigo-hover); }
+.warn-box { background: #FEF3C7; border: 1px solid #FCD34D; border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: #92400E; margin-bottom: 12px; }
+.info-box { background: var(--indigo-light); border: 1px solid #C7D2FE; border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: #3730A3; margin-bottom: 12px; }
+.faq-item { border-bottom: 1px solid var(--gray-100); padding: 14px 0; cursor: pointer; }
+.faq-item:last-child { border-bottom: none; }
+.faq-q { font-size: 14px; font-weight: 600; color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
+.faq-a { font-size: 13px; color: var(--gray-600); margin-top: 8px; line-height: 1.7; display: none; }
+.faq-a.open { display: block; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+<div class="tool-hero">
+  <span class="badge-free">Free Guide · No Signup</span>
+  <h1>Aadhar & PAN Form Helper</h1>
+  <p>Step-by-step guide to fill Aadhar correction, new PAN card, and PAN address change forms correctly</p>
+</div>
+<div class="tool-body">
+
+  <div class="form-tab-row">
+    <button class="form-tab active" onclick="showSection('aadhar-correction', this)">Aadhar Correction</button>
+    <button class="form-tab" onclick="showSection('new-pan', this)">New PAN Card</button>
+    <button class="form-tab" onclick="showSection('pan-correction', this)">PAN Correction</button>
+    <button class="form-tab" onclick="showSection('aadhar-enroll', this)">New Aadhar</button>
+  </div>
+
+  <!-- AADHAR CORRECTION -->
+  <div id="aadhar-correction">
+    <div class="info-box">You can correct Name, DOB, Address, Mobile, Gender in Aadhar — online or offline both options available.</div>
+
+    <div class="card">
+      <div class="section-title">Option 1: Online (Fastest)</div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">Go to UIDAI Self Service Portal</div><div class="step-desc">Visit myaadhaar.uidai.gov.in → Login with your Aadhar number + OTP on registered mobile</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">Click "Update Aadhaar Online"</div><div class="step-desc">Select what you want to update — Name / DOB / Gender / Address / Language</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">Upload Supporting Document</div><div class="step-desc">Scan or photo of valid document. Must be clear and all 4 corners visible.</div></div></div>
+      <div class="step-card"><div class="step-num">4</div><div><div class="step-title">Pay ₹50 fee</div><div class="step-desc">Pay via UPI, NetBanking, or Debit Card. Get URN (Update Request Number) for tracking.</div></div></div>
+      <div style="margin-top:8px;"><a href="https://myaadhaar.uidai.gov.in" target="_blank" class="link-btn">Open UIDAI Portal ↗</a></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Option 2: Aadhar Seva Kendra (Offline)</div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">Find nearest Aadhar Kendra</div><div class="step-desc">Go to uidai.gov.in → "Locate Enrolment & Update Centre" → Enter your PIN code</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">Fill Aadhar Correction Form</div><div class="step-desc">Fill form in BLOCK LETTERS only. Use blue or black pen. Do not use pencil.</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">Attach Documents + Visit Centre</div><div class="step-desc">Carry original + 1 photocopy of proof document. Biometric will be taken again.</div></div></div>
+
+      <div style="margin-top:16px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Accepted Documents for Address Proof:</div>
+        <span class="doc-chip green">Passport</span>
+        <span class="doc-chip green">Bank Passbook</span>
+        <span class="doc-chip green">Voter ID</span>
+        <span class="doc-chip green">Electricity Bill (3 months)</span>
+        <span class="doc-chip">Gas Bill</span>
+        <span class="doc-chip">Water Bill</span>
+        <span class="doc-chip">Ration Card</span>
+        <span class="doc-chip">Rent Agreement</span>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      <strong>Common Mistakes to Avoid:</strong><br>
+      • Name must match exactly with supporting document<br>
+      • Date of Birth: use DD/MM/YYYY format<br>
+      • Mobile number change is NOT possible online — must visit Kendra<br>
+      • Address proof must show your current address
+    </div>
+  </div>
+
+  <!-- NEW PAN -->
+  <div id="new-pan" style="display:none;">
+    <div class="info-box">New PAN card application is done through NSDL or UTIITSL portals. Fee is ₹107 (India) or ₹1,017 (abroad).</div>
+
+    <div class="card">
+      <div class="section-title">Online PAN Application — Form 49A</div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">Go to NSDL PAN Portal</div><div class="step-desc">Visit onlineservices.nsdl.com/paam/endUserRegisterContact.html → Select "New PAN - Indian Citizen (Form 49A)"</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">Fill Personal Details</div><div class="step-desc">Name as per Aadhar, Father's name, DOB, Gender, Source of Income, Address</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">Upload Photo & Signature</div><div class="step-desc">Photo: JPG, max 50KB, white background. Signature: JPG, max 30KB, white background.</div></div></div>
+      <div class="step-card"><div class="step-num">4</div><div><div class="step-title">e-KYC with Aadhar</div><div class="step-desc">Link Aadhar for paperless verification — OTP will come on Aadhar-registered mobile</div></div></div>
+      <div class="step-card"><div class="step-num">5</div><div><div class="step-title">Pay ₹107 & Submit</div><div class="step-desc">Get acknowledgement number. PAN delivered in 15-20 working days. e-PAN in 2-3 days.</div></div></div>
+      <div style="margin-top:8px;"><a href="https://onlineservices.nsdl.com/paam/endUserRegisterContact.html" target="_blank" class="link-btn">Apply on NSDL ↗</a></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Documents Required</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--gray-600);">IDENTITY PROOF (any 1)</div><span class="doc-chip green">Aadhar Card</span><span class="doc-chip">Voter ID</span><span class="doc-chip">Passport</span><span class="doc-chip">Driving Licence</span></div>
+        <div><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--gray-600);">ADDRESS PROOF (any 1)</div><span class="doc-chip green">Aadhar Card</span><span class="doc-chip">Bank Statement</span><span class="doc-chip">Electricity Bill</span><span class="doc-chip">Passport</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAN CORRECTION -->
+  <div id="pan-correction" style="display:none;">
+    <div class="info-box">PAN correction (name, DOB, address) is done via Form CSF — same NSDL or UTIITSL portal. Fee ₹107.</div>
+    <div class="card">
+      <div class="section-title">PAN Correction — Form CSF</div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">Visit NSDL Portal</div><div class="step-desc">Go to onlineservices.nsdl.com → Select "Changes or Correction in existing PAN"</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">Enter Existing PAN Number</div><div class="step-desc">Fill your current PAN. Only tick the fields you want to change — do NOT touch others.</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">Enter Corrected Information</div><div class="step-desc">Fill the corrected name/DOB/address exactly as in your supporting document.</div></div></div>
+      <div class="step-card"><div class="step-num">4</div><div><div class="step-title">Upload Proof Documents</div><div class="step-desc">Upload document supporting the correction. e.g. Aadhar for name/DOB correction.</div></div></div>
+      <div class="step-card"><div class="step-num">5</div><div><div class="step-title">Pay & Submit</div><div class="step-desc">Pay ₹107. Corrected PAN card delivered in 15-20 days.</div></div></div>
+      <div style="margin-top:8px;"><a href="https://onlineservices.nsdl.com/paam/endUserRegisterContact.html" target="_blank" class="link-btn">Open NSDL Portal ↗</a></div>
+    </div>
+    <div class="warn-box"><strong>Important:</strong> If correcting name, it must match your Aadhar exactly. If both Aadhar and PAN have wrong name, correct Aadhar first.</div>
+  </div>
+
+  <!-- NEW AADHAR -->
+  <div id="aadhar-enroll" style="display:none;">
+    <div class="info-box">New Aadhar enrollment is free. You must visit an Aadhar Enrolment Centre — it cannot be done online.</div>
+    <div class="card">
+      <div class="section-title">New Aadhar Enrollment Steps</div>
+      <div class="step-card"><div class="step-num">1</div><div><div class="step-title">Find Aadhar Enrolment Centre</div><div class="step-desc">Go to uidai.gov.in → "Locate Enrolment Centre" → Enter PIN code. Common centres: Post offices, Banks, CSC centres.</div></div></div>
+      <div class="step-card"><div class="step-num">2</div><div><div class="step-title">Carry Documents</div><div class="step-desc">Identity + Address proof (same document can work for both — Passport, Voter ID, etc.)</div></div></div>
+      <div class="step-card"><div class="step-num">3</div><div><div class="step-title">Fill Enrollment Form at Centre</div><div class="step-desc">Form available at the centre. Fill in BLOCK LETTERS. Provide active mobile number.</div></div></div>
+      <div class="step-card"><div class="step-num">4</div><div><div class="step-title">Biometrics Captured</div><div class="step-desc">10 fingerprints + iris scan + photo taken at the centre. Takes 5-10 minutes.</div></div></div>
+      <div class="step-card"><div class="step-num">5</div><div><div class="step-title">Get Enrolment Slip</div><div class="step-desc">You'll get a slip with Enrolment ID. Aadhar delivered in 90 days. Track on UIDAI website.</div></div></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Documents Required (any 1 for PoI + PoA)</div>
+      <span class="doc-chip green">Passport</span><span class="doc-chip green">Voter ID</span><span class="doc-chip green">Driving Licence</span><span class="doc-chip">PAN Card (PoI only)</span><span class="doc-chip">Ration Card</span><span class="doc-chip">Bank Passbook</span><span class="doc-chip">Birth Certificate</span><span class="doc-chip">10th Certificate</span>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="card" style="margin-top:8px;">
+    <div class="section-title">Common Questions</div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+      <div class="faq-q">How many days does Aadhar correction take? <span>+</span></div>
+      <div class="faq-a">Online correction takes 5-7 working days. Offline at Aadhar Kendra takes 10-15 working days. You'll get SMS updates on your registered mobile.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+      <div class="faq-q">Can I have 2 PAN cards? <span>+</span></div>
+      <div class="faq-a">No — having 2 PAN cards is illegal and carries a penalty of ₹10,000. If you accidentally got 2, surrender the duplicate one at your nearest Income Tax office.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+      <div class="faq-q">Is e-PAN valid? <span>+</span></div>
+      <div class="faq-a">Yes, e-PAN (digital PAN) is 100% valid and legally equal to physical PAN card. You can download it from the NSDL or UTIITSL website anytime for free.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFAQ(this)">
+      <div class="faq-q">What if mobile number is not linked to Aadhar? <span>+</span></div>
+      <div class="faq-a">You cannot do online Aadhar updates without a registered mobile. You must visit an Aadhar Seva Kendra to first register your mobile number.</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+function showSection(id, btn) {
+  ['aadhar-correction','new-pan','pan-correction','aadhar-enroll'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.form-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleFAQ(item) {
+  const ans = item.querySelector('.faq-a');
+  const icon = item.querySelector('.faq-q span');
+  ans.classList.toggle('open');
+  icon.textContent = ans.classList.contains('open') ? '−' : '+';
+}
+</script>
+</body>
+</html>

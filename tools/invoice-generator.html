@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Invoice Generator — FreeToolHub</title>
+<meta name="description" content="Create professional GST invoices free online. No signup needed. Download as PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  #preview { background: white; border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 32px; font-size: 13px; }
+  #preview .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  #preview .inv-title { font-size: 28px; font-weight: 800; color: var(--indigo); letter-spacing: -1px; }
+  #preview .inv-num { font-size: 12px; color: var(--gray-600); margin-top: 4px; }
+  #preview .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  #preview .party-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-400); margin-bottom: 4px; }
+  #preview .party-name { font-weight: 700; font-size: 14px; }
+  #preview table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12px; }
+  #preview th { background: var(--gray-50); padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-600); border-bottom: 1px solid var(--gray-200); }
+  #preview td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); }
+  #preview .totals { display: flex; justify-content: flex-end; }
+  #preview .totals-box { width: 220px; }
+  #preview .tot-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+  #preview .tot-total { font-weight: 700; font-size: 14px; border-top: 2px solid var(--navy); padding-top: 6px; margin-top: 4px; }
+  .items-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  .items-table th { font-size: 11px; color: var(--gray-600); font-weight: 600; text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--gray-200); }
+  .items-table td { padding: 4px; }
+  .items-table input { margin-bottom: 0; padding: 8px; font-size: 12px; }
+  .add-row-btn { font-size: 13px; color: var(--indigo); background: none; border: none; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; padding: 4px 0; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+
+<div class="tool-hero">
+  <span class="badge-free">100% Free</span>
+  <h1>Invoice Generator</h1>
+  <p>Create GST-ready invoices in seconds — download as PDF, no signup needed</p>
+</div>
+
+<div class="tool-body" style="max-width:1100px; display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;">
+
+  <!-- LEFT: FORM -->
+  <div>
+    <div class="card">
+      <div class="section-title">Your Business</div>
+      <label>Business Name</label>
+      <input type="text" id="biz-name" placeholder="My Company Pvt Ltd" oninput="updateInvoice()">
+      <label>Address</label>
+      <textarea id="biz-addr" rows="2" placeholder="123, MG Road, Mumbai - 400001" oninput="updateInvoice()"></textarea>
+      <div class="row">
+        <div><label>GST Number</label><input type="text" id="biz-gst" placeholder="27AADCB2230M1ZT" oninput="updateInvoice()"></div>
+        <div><label>Phone</label><input type="text" id="biz-phone" placeholder="+91 98765 43210" oninput="updateInvoice()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Bill To</div>
+      <label>Client Name</label>
+      <input type="text" id="client-name" placeholder="Client Company Ltd" oninput="updateInvoice()">
+      <label>Client Address</label>
+      <textarea id="client-addr" rows="2" placeholder="456, Ring Road, Delhi - 110001" oninput="updateInvoice()"></textarea>
+      <div class="row">
+        <div><label>Invoice No.</label><input type="text" id="inv-num" placeholder="INV-001" oninput="updateInvoice()"></div>
+        <div><label>Invoice Date</label><input type="date" id="inv-date" oninput="updateInvoice()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Items</div>
+      <table class="items-table">
+        <thead><tr><th style="width:40%">Description</th><th>Qty</th><th>Rate (₹)</th><th>GST%</th></tr></thead>
+        <tbody id="items-body">
+          <tr>
+            <td><input type="text" placeholder="Service or Product" oninput="updateInvoice()"></td>
+            <td><input type="number" value="1" min="1" style="width:60px;" oninput="updateInvoice()"></td>
+            <td><input type="number" value="0" min="0" oninput="updateInvoice()"></td>
+            <td><select oninput="updateInvoice()"><option>0</option><option>5</option><option selected>18</option><option>28</option></select></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addRow()">+ Add Item</button>
+    </div>
+
+    <div class="card">
+      <label>Notes / Terms</label>
+      <textarea id="notes" rows="2" placeholder="Payment due within 30 days. Thank you for your business!" oninput="updateInvoice()"></textarea>
+    </div>
+
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:14px;" onclick="window.print()">
+      Download Invoice as PDF
+    </button>
+  </div>
+
+  <!-- RIGHT: PREVIEW -->
+  <div style="position:sticky; top:80px;">
+    <div style="font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">Live Preview</div>
+    <div id="preview">
+      <div class="inv-header">
+        <div>
+          <div class="inv-title">INVOICE</div>
+          <div class="inv-num" id="prev-invnum">Invoice #INV-001</div>
+          <div class="inv-num" id="prev-invdate" style="margin-top:2px;"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;font-size:15px;" id="prev-bizname">Your Business</div>
+          <div style="font-size:11px;color:#64748B;margin-top:4px;" id="prev-bizaddr"></div>
+          <div style="font-size:11px;color:#64748B;" id="prev-bizgst"></div>
+        </div>
+      </div>
+
+      <div class="parties">
+        <div><div class="party-label">Bill To</div><div class="party-name" id="prev-clientname">Client Name</div><div style="font-size:11px;color:#64748B;margin-top:2px;" id="prev-clientaddr"></div></div>
+      </div>
+
+      <table>
+        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Rate</th><th>GST</th><th>Amount</th></tr></thead>
+        <tbody id="prev-items"></tbody>
+      </table>
+
+      <div class="totals">
+        <div class="totals-box">
+          <div class="tot-row"><span>Subtotal</span><span id="prev-sub">₹0</span></div>
+          <div class="tot-row"><span>GST</span><span id="prev-gst">₹0</span></div>
+          <div class="tot-row tot-total"><span>Total</span><span id="prev-total">₹0</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;font-size:11px;color:#64748B;border-top:1px solid #E2E8F0;padding-top:12px;" id="prev-notes"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+document.getElementById('inv-date').valueAsDate = new Date();
+
+function addRow() {
+  const tbody = document.getElementById('items-body');
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" placeholder="Item description" oninput="updateInvoice()"></td>
+    <td><input type="number" value="1" min="1" style="width:60px;" oninput="updateInvoice()"></td>
+    <td><input type="number" value="0" min="0" oninput="updateInvoice()"></td>
+    <td><select oninput="updateInvoice()"><option>0</option><option>5</option><option selected>18</option><option>28</option></select></td>
+  `;
+  tbody.appendChild(row);
+}
+
+function updateInvoice() {
+  const val = id => document.getElementById(id)?.value.trim() || '';
+
+  document.getElementById('prev-bizname').textContent = val('biz-name') || 'Your Business';
+  document.getElementById('prev-bizaddr').textContent = val('biz-addr');
+  document.getElementById('prev-bizgst').textContent = val('biz-gst') ? 'GST: ' + val('biz-gst') : '';
+  document.getElementById('prev-clientname').textContent = val('client-name') || 'Client Name';
+  document.getElementById('prev-clientaddr').textContent = val('client-addr');
+  document.getElementById('prev-invnum').textContent = 'Invoice #' + (val('inv-num') || 'INV-001');
+  document.getElementById('prev-invdate').textContent = val('inv-date') ? 'Date: ' + val('inv-date') : '';
+  document.getElementById('prev-notes').textContent = val('notes');
+
+  const rows = document.getElementById('items-body').querySelectorAll('tr');
+  const tbody = document.getElementById('prev-items');
+  tbody.innerHTML = '';
+  let subtotal = 0, totalGst = 0;
+
+  rows.forEach((row, i) => {
+    const inputs = row.querySelectorAll('input, select');
+    const desc = inputs[0]?.value || '';
+    const qty = parseFloat(inputs[1]?.value) || 0;
+    const rate = parseFloat(inputs[2]?.value) || 0;
+    const gstRate = parseFloat(inputs[3]?.value) || 0;
+    const base = qty * rate;
+    const gst = base * gstRate / 100;
+    const amt = base + gst;
+    subtotal += base;
+    totalGst += gst;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${desc || '-'}</td><td>${qty}</td><td>₹${rate.toFixed(0)}</td><td>${gstRate}%</td><td>₹${amt.toFixed(0)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('prev-sub').textContent = '₹' + subtotal.toFixed(0);
+  document.getElementById('prev-gst').textContent = '₹' + totalGst.toFixed(0);
+  document.getElementById('prev-total').textContent = '₹' + (subtotal + totalGst).toFixed(0);
+}
+
+updateInvoice();
+</script>
+
+<style>
+@media print {
+  nav, .tool-hero, .tool-body > div:first-child, .btn { display: none !important; }
+  #preview { border: none; position: static; }
+}
+</style>
+</body>
+</html>

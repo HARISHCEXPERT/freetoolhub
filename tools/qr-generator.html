@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free QR Code Generator — FreeToolHub</title>
+<meta name="description" content="Generate QR codes for any URL, text, phone, UPI or WiFi — free, instant, no signup.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  .type-btn { padding: 8px 16px; border: 1px solid var(--gray-200); border-radius: 100px; background: white; font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; font-weight: 500; transition: all 0.15s; color: var(--gray-600); }
+  .type-btn.active, .type-btn:hover { background: var(--indigo); color: white; border-color: var(--indigo); }
+  .type-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  #qr-output { text-align: center; padding: 24px; }
+  #qr-output img { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 12px; background: white; max-width: 220px; width: 100%; }
+  .color-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .color-row label { margin-bottom: 0; min-width: 100px; }
+  .color-row input[type="color"] { width: 44px; height: 36px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; background: white; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+    <span class="logo-text">Free<span>Tool</span>Hub</span>
+  </a>
+  <a href="../index.html" class="nav-back">← Back to all tools</a>
+</nav>
+
+<div class="tool-hero">
+  <span class="badge-free">100% Free · Instant</span>
+  <h1>QR Code Generator</h1>
+  <p>Generate QR codes for URLs, text, UPI payments, WiFi, phone numbers — download instantly</p>
+</div>
+
+<div class="tool-body" style="max-width:900px; display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;">
+
+  <!-- LEFT -->
+  <div>
+    <div class="card">
+      <div class="section-title">What to encode?</div>
+      <div class="type-row">
+        <button class="type-btn active" onclick="setType('url',this)">URL / Link</button>
+        <button class="type-btn" onclick="setType('text',this)">Text</button>
+        <button class="type-btn" onclick="setType('upi',this)">UPI Payment</button>
+        <button class="type-btn" onclick="setType('wifi',this)">WiFi</button>
+        <button class="type-btn" onclick="setType('phone',this)">Phone</button>
+        <button class="type-btn" onclick="setType('email',this)">Email</button>
+      </div>
+
+      <!-- URL -->
+      <div id="form-url">
+        <label>Website URL</label>
+        <input type="text" id="url-input" placeholder="https://example.com" oninput="generateQR()">
+      </div>
+
+      <!-- TEXT -->
+      <div id="form-text" style="display:none;">
+        <label>Your Text</label>
+        <textarea id="text-input" rows="3" placeholder="Enter any text here..." oninput="generateQR()"></textarea>
+      </div>
+
+      <!-- UPI -->
+      <div id="form-upi" style="display:none;">
+        <label>UPI ID</label>
+        <input type="text" id="upi-id" placeholder="yourname@upi" oninput="generateQR()">
+        <label>Name</label>
+        <input type="text" id="upi-name" placeholder="Rahul Sharma" oninput="generateQR()">
+        <label>Amount (optional)</label>
+        <input type="number" id="upi-amt" placeholder="500" oninput="generateQR()">
+      </div>
+
+      <!-- WIFI -->
+      <div id="form-wifi" style="display:none;">
+        <label>WiFi Name (SSID)</label>
+        <input type="text" id="wifi-ssid" placeholder="MyHomeWiFi" oninput="generateQR()">
+        <label>Password</label>
+        <input type="text" id="wifi-pass" placeholder="password123" oninput="generateQR()">
+        <label>Security</label>
+        <select id="wifi-sec" oninput="generateQR()"><option>WPA</option><option>WEP</option><option>nopass</option></select>
+      </div>
+
+      <!-- PHONE -->
+      <div id="form-phone" style="display:none;">
+        <label>Phone Number</label>
+        <input type="text" id="phone-input" placeholder="+91 98765 43210" oninput="generateQR()">
+      </div>
+
+      <!-- EMAIL -->
+      <div id="form-email" style="display:none;">
+        <label>Email Address</label>
+        <input type="email" id="email-input" placeholder="someone@email.com" oninput="generateQR()">
+        <label>Subject (optional)</label>
+        <input type="text" id="email-sub" placeholder="Hello!" oninput="generateQR()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Customize</div>
+      <div class="color-row">
+        <label>QR Color</label>
+        <input type="color" id="fg-color" value="#0F172A" oninput="generateQR()">
+        <span style="font-size:13px;color:var(--gray-600);">Foreground</span>
+      </div>
+      <div class="color-row">
+        <label>Background</label>
+        <input type="color" id="bg-color" value="#ffffff" oninput="generateQR()">
+        <span style="font-size:13px;color:var(--gray-600);">Background</span>
+      </div>
+      <label>Size</label>
+      <select id="qr-size" oninput="generateQR()">
+        <option value="200">Small (200px)</option>
+        <option value="300" selected>Medium (300px)</option>
+        <option value="500">Large (500px)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- RIGHT: OUTPUT -->
+  <div style="position:sticky; top:80px;">
+    <div class="card">
+      <div class="section-title">Your QR Code</div>
+      <div id="qr-output">
+        <p style="color:var(--gray-400);font-size:14px;">Enter content on the left to generate your QR code</p>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;" id="dl-btns" style="display:none;">
+        <button class="btn btn-primary" id="dl-png" onclick="downloadQR('png')">Download PNG</button>
+        <button class="btn btn-secondary" onclick="downloadQR('svg')">Download SVG</button>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--green-light);border-color:var(--green);">
+      <div style="font-size:13px;font-weight:600;color:#065F46;margin-bottom:6px;">Tips for best results</div>
+      <ul style="font-size:12px;color:#047857;padding-left:16px;line-height:1.9;">
+        <li>Use high contrast colors (dark on light)</li>
+        <li>Test QR before printing</li>
+        <li>Download PNG for printing, SVG for logos</li>
+        <li>UPI QR works with all Indian payment apps</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="../js/main.js"></script>
+<script>
+let currentType = 'url';
+let qrInstance = null;
+
+function setType(type, btn) {
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['url','text','upi','wifi','phone','email'].forEach(t => {
+    document.getElementById('form-' + t).style.display = t === type ? 'block' : 'none';
+  });
+  generateQR();
+}
+
+function getContent() {
+  switch(currentType) {
+    case 'url': return document.getElementById('url-input').value.trim();
+    case 'text': return document.getElementById('text-input').value.trim();
+    case 'upi': {
+      const id = document.getElementById('upi-id').value.trim();
+      const name = document.getElementById('upi-name').value.trim();
+      const amt = document.getElementById('upi-amt').value.trim();
+      if (!id) return '';
+      let str = `upi://pay?pa=${id}&pn=${encodeURIComponent(name)}`;
+      if (amt) str += `&am=${amt}&cu=INR`;
+      return str;
+    }
+    case 'wifi': {
+      const ssid = document.getElementById('wifi-ssid').value.trim();
+      const pass = document.getElementById('wifi-pass').value.trim();
+      const sec = document.getElementById('wifi-sec').value;
+      return ssid ? `WIFI:T:${sec};S:${ssid};P:${pass};;` : '';
+    }
+    case 'phone': return document.getElementById('phone-input').value.trim() ? `tel:${document.getElementById('phone-input').value.trim()}` : '';
+    case 'email': {
+      const em = document.getElementById('email-input').value.trim();
+      const sub = document.getElementById('email-sub').value.trim();
+      return em ? `mailto:${em}${sub ? '?subject=' + encodeURIComponent(sub) : ''}` : '';
+    }
+  }
+  return '';
+}
+
+function generateQR() {
+  const content = getContent();
+  const out = document.getElementById('qr-output');
+  const dlBtns = document.getElementById('dl-btns');
+  if (!content) {
+    out.innerHTML = '<p style="color:var(--gray-400);font-size:14px;">Enter content on the left to generate your QR code</p>';
+    dlBtns.style.display = 'none';
+    return;
+  }
+
+  const size = parseInt(document.getElementById('qr-size').value);
+  const fg = document.getElementById('fg-color').value;
+  const bg = document.getElementById('bg-color').value;
+
+  out.innerHTML = '<div id="qr-div" style="display:inline-block;"></div>';
+  try {
+    new QRCode(document.getElementById('qr-div'), {
+      text: content,
+      width: size,
+      height: size,
+      colorDark: fg,
+      colorLight: bg,
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    dlBtns.style.display = 'flex';
+  } catch(e) {
+    out.innerHTML = '<p style="color:red;font-size:13px;">Could not generate QR. Check your input.</p>';
+  }
+}
+
+function downloadQR(type) {
+  const img = document.querySelector('#qr-div img');
+  if (!img) return;
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = `qrcode-freetoolhub.${type}`;
+  a.click();
+}
+</script>
+</body>
+</html>
