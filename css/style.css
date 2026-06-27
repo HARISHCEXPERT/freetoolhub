@@ -428,3 +428,20 @@ pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:10
   .hstat-n { font-size: 18px; }
   .home-footer-links { gap: 14px; }
 }
+
+/* Topbar nav links */
+.topbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.topbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--line);
+  margin: 0 6px;
+}
+@media (max-width: 640px) {
+  .topbar-links .ghost-link:not(#random-tool) { display: none; }
+  .topbar-divider { display: none; }
+}

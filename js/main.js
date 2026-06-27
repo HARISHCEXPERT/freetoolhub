@@ -1144,7 +1144,13 @@ host.innerHTML = `
       <header id="topbar">
         <button id="menu-btn" aria-label="Menu">☰</button>
         <div id="crumb"></div>
-        <a class="ghost-link" id="random-tool">Surprise me ↗</a>
+        <div class="topbar-links">
+          <a class="ghost-link" href="${homeHref().replace('index.html','')}about.html">About</a>
+          <a class="ghost-link" href="${homeHref().replace('index.html','')}privacy.html">Privacy</a>
+          <a class="ghost-link" href="${homeHref().replace('index.html','')}terms.html">Terms</a>
+          <span class="topbar-divider"></span>
+          <a class="ghost-link" id="random-tool">Surprise me ↗</a>
+        </div>
       </header>
       <div id="view"></div>
     </main>
