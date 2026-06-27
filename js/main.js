@@ -1,9 +1,5 @@
-/* ================================================================
-   Toolbox — all logic. Pure front-end, no dependencies.
-   ================================================================ */
 'use strict';
 
-/* ---------- tiny utils ---------- */
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -28,17 +24,11 @@ function download(text, name, type = 'text/plain') {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* ---------- result html helpers ---------- */
 const stat = (v, k, accent) => `<div class="stat"><div class="v ${accent ? 'accent' : ''}">${v}</div><div class="k">${k}</div></div>`;
 const bigResult = (...stats) => `<div class="result big">${stats.join('')}</div>`;
 const kv = rows => `<div class="result"><table class="kvtable"><tbody>${rows.map(([k, v]) => `<tr><td>${k}</td><td><b>${v}</b></td></tr>`).join('')}</tbody></table></div>`;
 const errBox = m => `<div class="status err" style="margin-top:14px">⚠ ${esc(m)}</div>`;
 
-/* ================================================================
-   Shared tool scaffolds
-   ================================================================ */
-
-/* Input → transform → Output, with one or more action buttons */
 function ioTool(root, cfg) {
   const acts = cfg.actions || [];
   root.innerHTML = `
@@ -93,7 +83,6 @@ function ioTool(root, cfg) {
   if (cfg.sample != null) $('#io-sample', root).onclick = () => { $in.value = cfg.sample; if (cfg.auto && acts[0]) run(acts[0]); };
 }
 
-/* Field-based calculator / generator */
 function calcTool(root, cfg) {
   const fieldHtml = f => {
     const id = 'f-' + f.id;
@@ -140,7 +129,6 @@ function calcTool(root, cfg) {
   if (cfg.auto) { root.addEventListener('input', () => go(cfg.compute)); go(cfg.compute); }
 }
 
-/* Generator output block (text result + copy/download) */
 const outBlock = (text, id = 'gx', name = 'output.txt', mono = true) =>
   `<div class="result"><div class="row" style="justify-content:flex-end;margin-bottom:8px">
       <button class="btn sm js-copy" data-target="${id}">Copy</button>
@@ -148,7 +136,6 @@ const outBlock = (text, id = 'gx', name = 'output.txt', mono = true) =>
     </div>
     <textarea class="ta ${mono ? '' : 'wrap'} out" id="${id}" readonly style="min-height:${mono ? 200 : 140}px">${esc(text)}</textarea></div>`;
 
-/* ---------- delegated copy / download from result blocks ---------- */
 document.addEventListener('click', e => {
   const c = e.target.closest('.js-copy');
   if (c) { const t = document.getElementById(c.dataset.target); if (t) copy(t.value != null ? t.value : t.textContent); }
@@ -156,9 +143,6 @@ document.addEventListener('click', e => {
   if (d) { const t = document.getElementById(d.dataset.target); if (t) download(t.value != null ? t.value : t.textContent, d.dataset.name || 'output.txt'); }
 });
 
-/* ================================================================
-   conversion / parsing helpers
-   ================================================================ */
 function jsonToCsv(arr) {
   if (!Array.isArray(arr)) { if (arr && typeof arr === 'object') arr = [arr]; else throw new Error('Expected a JSON array of objects'); }
   const keys = [...arr.reduce((s, o) => { Object.keys(o || {}).forEach(k => s.add(k)); return s; }, new Set())];
@@ -173,7 +157,7 @@ function csvToRows(text) {
     else if (c === '"') q = true;
     else if (c === ',') { row.push(cur); cur = ''; }
     else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
-    else if (c === '\r') { /* skip */ }
+    else if (c === '\r') {  }
     else cur += c;
   }
   if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
@@ -212,7 +196,7 @@ function formatSql(sql) {
   s = s.replace(/,\s*/g, ',\n  ').replace(/\n(AND|OR|ON)\b/gi, '\n  $1');
   return s.replace(/^\n/, '').replace(/\n{2,}/g, '\n').trim();
 }
-/* small but full MD5 */
+
 function md5(str) {
   function toBytes(s){ s=unescape(encodeURIComponent(s)); const b=[]; for(let i=0;i<s.length;i++)b.push(s.charCodeAt(i)); return b; }
   function add(a,b){const l=(a&0xffff)+(b&0xffff);return(((a>>16)+(b>>16)+(l>>16))<<16)|(l&0xffff);}
@@ -256,7 +240,7 @@ async function sha(algo, str) {
   const buf = await crypto.subtle.digest(algo, new TextEncoder().encode(str));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-/* minimal-ish YAML → object (common cases) */
+
 function parseYaml(text) {
   const lines = text.replace(/\t/g, '  ').split('\n').filter(l => l.trim() && !/^\s*#/.test(l));
   let i = 0;
@@ -282,7 +266,7 @@ function parseYaml(text) {
         const rest = t.slice(2);
         i++;
         if (rest.includes(':') && !/^["'].*["']$/.test(rest)) {
-          // inline map item — re-parse from this content
+
           const obj = {}; const [k, ...r] = rest.split(':'); obj[k.trim()] = val(r.join(':'));
           if (i < lines.length && indentOf(lines[i]) > min) Object.assign(obj, parse(indentOf(lines[i])));
           result.push(obj);
@@ -300,7 +284,7 @@ function parseYaml(text) {
   }
   return parse(0);
 }
-/* minimal markdown */
+
 function mdToHtml(md) {
   const blocks = [];
   md = md.replace(/```([\s\S]*?)```/g, (_, c) => { blocks.push('<pre><code>' + esc(c.replace(/^\n/, '')) + '</code></pre>'); return '\u0000' + (blocks.length - 1) + '\u0000'; });
@@ -315,7 +299,7 @@ function mdToHtml(md) {
   const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
   for (let raw of lines) {
     const l = raw.replace(/\u0000(\d+)\u0000/, (_, n) => blocks[n]);
-    if (/\u0000\d+\u0000/.test(raw) === false && raw.includes('\u0000')) { /* noop */ }
+    if (/\u0000\d+\u0000/.test(raw) === false && raw.includes('\u0000')) {  }
     if (raw.match(/^\u0000\d+\u0000$/)) { closeList(); html += blocks[raw.replace(/\u0000/g, '')]; continue; }
     if (/^#{1,6} /.test(l)) { closeList(); const lv = l.match(/^#+/)[0].length; html += `<h${lv}>${inline(l.replace(/^#+ /, ''))}</h${lv}>`; }
     else if (/^>\s?/.test(l)) { closeList(); html += `<blockquote>${inline(l.replace(/^>\s?/, ''))}</blockquote>`; }
@@ -329,9 +313,6 @@ function mdToHtml(md) {
   return html;
 }
 
-/* ================================================================
-   TOOL REGISTRY
-   ================================================================ */
 const CATS = [
   { id: 'dev',      name: 'Developer',  ic: '{}' },
   { id: 'text',     name: 'Text',       ic: '¶' },
@@ -345,7 +326,6 @@ const CATS = [
 const TOOLS = [];
 const T = (cat, id, name, desc, render) => TOOLS.push({ cat, id, name, desc, render });
 
-/* ---------------- DEVELOPER ---------------- */
 T('dev', 'json-formatter', 'JSON Formatter', 'Beautify, minify & sort JSON.', root => ioTool(root, {
   placeholder: '{"hello":"world"}', dlName: 'formatted.json', wrapOut: false, auto: true,
   sample: '{"name":"Ada","langs":["JS","Py"],"active":true,"meta":{"id":7,"score":9.5}}',
@@ -555,7 +535,6 @@ T('dev', 'markdown-preview', 'Markdown Preview', 'Live Markdown → HTML preview
   $('#min', root).addEventListener('input', run); run();
 });
 
-/* ---------------- TEXT ---------------- */
 function countStats(t) {
   const words = (t.match(/\S+/g) || []).length;
   const chars = t.length, noSpace = t.replace(/\s/g, '').length;
@@ -690,7 +669,6 @@ T('text', 'phone-extractor', 'Phone Extractor', 'Pull phone numbers from text.',
   actions: [{ name: 'Extract phones', primary: true, run: t => { const m = (t.match(/\+?\d[\d\-\s().]{7,}\d/g) || []).filter(x => (x.replace(/\D/g, '').length >= 8)); return [...new Set(m.map(x => x.trim()))].join('\n') || '(none found)'; } }],
 }));
 
-/* ---------------- EVERYDAY ---------------- */
 T('everyday', 'password-generator', 'Password Generator', 'Strong random passwords.', root => calcTool(root, {
   button: 'Generate', button2: 'Regenerate',
   fields: [
@@ -852,7 +830,6 @@ T('everyday', 'pomodoro', 'Pomodoro Timer', 'Focus & break cycles.', root => {
   return () => clearInterval(iv);
 });
 
-/* ---------------- FINANCE ---------------- */
 T('finance', 'emi', 'EMI Calculator', 'Loan equated monthly installment.', root => calcTool(root, {
   button: 'Calculate EMI', auto: true,
   fields: [{ id: 'p', label: 'Loan amount (₹)', value: 1000000 }, { id: 'r', label: 'Interest rate (% p.a.)', value: 9, step: '0.1' }, { id: 'n', label: 'Tenure (months)', value: 120 }],
@@ -920,7 +897,6 @@ T('finance', 'salary', 'Salary Converter', 'Hourly ⇄ daily ⇄ monthly ⇄ yea
   compute: v => { const r = num(v.rate), h = num(v.hpd), d = num(v.dpw); const wk = r * h * d, yr = wk * 52; return bigResult(stat(money(r * h), 'Daily', true), stat(money(wk), 'Weekly'), stat(money(yr / 12), 'Monthly'), stat(money(yr), 'Yearly')); },
 }));
 
-/* ---------------- STUDENT ---------------- */
 T('student', 'cgpa', 'CGPA Calculator', 'Weighted CGPA from semesters.', root => calcTool(root, {
   button: 'Calculate CGPA', auto: true,
   fields: [{ id: 'rows', label: 'One per line: GPA, credits', type: 'textarea', value: '8.5, 20\n9.0, 22\n7.8, 18' }],
@@ -947,7 +923,6 @@ T('student', 'marks', 'Marks / Grade Calculator', 'Total, percentage & grade.', 
   compute: v => { let ob = 0, mx = 0; for (const l of v.rows.split('\n')) { if (!l.trim()) continue; const [o, m] = l.split(',').map(num); ob += o; mx += m; } if (!mx) return errBox('Enter marks'); const p = ob / mx * 100; const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B' : p >= 60 ? 'C' : p >= 40 ? 'D' : 'F'; return bigResult(stat(fmt(ob, 0) + '/' + fmt(mx, 0), 'Total', false), stat(fmt(p) + '%', 'Percentage', true), stat(g, 'Grade')); },
 }));
 
-/* ---------------- SEO & WEB ---------------- */
 T('seo', 'meta-tags', 'Meta Tag Generator', 'Title, description & viewport tags.', root => calcTool(root, {
   button: 'Generate', auto: true,
   fields: [{ id: 'title', label: 'Page title', type: 'text', value: 'My Awesome Page' }, { id: 'desc', label: 'Description', type: 'text', value: 'A short, compelling description under 160 chars.' }, { id: 'kw', label: 'Keywords (comma)', type: 'text', value: 'tools, free, online' }, { id: 'author', label: 'Author', type: 'text', value: '' }],
@@ -989,7 +964,7 @@ T('seo', 'faq-schema', 'FAQ Schema', 'FAQPage JSON-LD structured data.', root =>
 }));
 T('seo', 'article-schema', 'Article Schema', 'Article JSON-LD structured data.', root => calcTool(root, {
   button: 'Generate', auto: true,
-  fields: [{ id: 'headline', label: 'Headline', type: 'text', value: 'How to use Toolbox' }, { id: 'author', label: 'Author', type: 'text', value: 'Jane Doe' }, { id: 'date', label: 'Published date', type: 'date' }, { id: 'img', label: 'Image URL', type: 'text', value: 'https://example.com/cover.jpg' }],
+  fields: [{ id: 'headline', label: 'Headline', type: 'text', value: 'How to use FreeToolHub' }, { id: 'author', label: 'Author', type: 'text', value: 'Jane Doe' }, { id: 'date', label: 'Published date', type: 'date' }, { id: 'img', label: 'Image URL', type: 'text', value: 'https://example.com/cover.jpg' }],
   compute: v => { const data = { '@context': 'https://schema.org', '@type': 'Article', headline: v.headline, image: [v.img], author: { '@type': 'Person', name: v.author }, datePublished: v.date || new Date().toISOString().slice(0, 10) }; return outBlock('<script type="application/ld+json">\n' + JSON.stringify(data, null, 2) + '\n</' + 'script>', 'artout', 'article-schema.html', false); },
 }));
 T('seo', 'product-schema', 'Product Schema', 'Product JSON-LD with offer.', root => calcTool(root, {
@@ -998,127 +973,30 @@ T('seo', 'product-schema', 'Product Schema', 'Product JSON-LD with offer.', root
   compute: v => { const data = { '@context': 'https://schema.org', '@type': 'Product', name: v.name, description: v.desc, image: v.img, offers: { '@type': 'Offer', price: v.price, priceCurrency: v.cur, availability: 'https://schema.org/InStock' } }; return outBlock('<script type="application/ld+json">\n' + JSON.stringify(data, null, 2) + '\n</' + 'script>', 'prodout', 'product-schema.html', false); },
 }));
 
-/* ---------------- IMAGE (canvas) ---------------- */
 function imagePicker(root, onImg) {
   const wrap = document.createElement('div');
-  wrap.innerHTML = `<div class="dropzone" id="dz">⬆ Click or drop an image here<br><span class="subtle">PNG · JPG · WEBP · GIF — never leaves your browser</span></div><input type="file" id="fi" accept="image/*" hidden>`;
-  root.appendChild(wrap);
-  const dz = $('#dz', wrap), fi = $('#fi', wrap);
-  const load = file => { if (!file || !file.type.startsWith('image')) { toast('Please choose an image'); return; } const img = new Image(); img.onload = () => onImg(img, file); img.onerror = () => toast('Could not load image'); img.src = URL.createObjectURL(file); };
-  dz.onclick = () => fi.click();
-  fi.onchange = e => load(e.target.files[0]);
-  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
-  dz.ondragleave = () => dz.classList.remove('drag');
-  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); load(e.dataTransfer.files[0]); };
-}
-function imageTool(root, cfg) {
-  root.innerHTML = `<div class="tool-body"><div id="pick"></div><div id="ed" style="display:none">
-    <div class="field-row" id="ctrls"></div>
-    <div class="row" style="margin:6px 0 16px"><button class="btn primary" id="proc">${cfg.button || 'Process'}</button><button class="btn" id="dl">Download</button><button class="btn ghost" id="again">Choose another</button></div>
-    <div class="io-grid"><div class="io-col"><span class="io-label">Original</span><div id="orig"></div></div>
-    <div class="io-col"><span class="io-label">Result <span id="rinfo" class="subtle"></span></span><div id="res"></div></div></div>
-    ${cfg.extra ? `<div id="extra"></div>` : ''}</div></div>`;
-  let curImg = null, curFile = null, lastBlob = null, lastName = 'image.png';
-  const ed = $('#ed', root);
-  $('#ctrls', root).innerHTML = cfg.controls || '';
-  imagePicker($('#pick', root), (img, file) => { curImg = img; curFile = file; $('#pick', root).style.display = 'none'; ed.style.display = 'block'; $('#orig', root).innerHTML = `<img class="preview-img" src="${img.src}"><div class="subtle" style="margin-top:6px">${img.naturalWidth}×${img.naturalHeight} · ${(file.size / 1024).toFixed(0)} KB</div>`; if (cfg.onLoad) cfg.onLoad(root, img); process(); });
-  const process = () => {
-    if (!curImg) return;
-    const canvas = document.createElement('canvas');
-    const opts = cfg.read ? cfg.read(root) : {};
-    cfg.draw(curImg, canvas, opts);
-    const type = opts.mime || 'image/png';
-    const q = opts.quality != null ? opts.quality : 0.92;
-    canvas.toBlob(blob => {
-      lastBlob = blob; lastName = (cfg.name ? cfg.name(curFile, opts) : 'image.png');
-      $('#res', root).innerHTML = `<img class="preview-img" src="${URL.createObjectURL(blob)}">`;
-      $('#rinfo', root).textContent = `· ${canvas.width}×${canvas.height} · ${(blob.size / 1024).toFixed(0)} KB`;
-      if (cfg.afterBlob) cfg.afterBlob(root, blob, canvas);
-    }, type, q);
-  };
-  $('#proc', root).onclick = process;
-  $('#dl', root).onclick = () => lastBlob ? download(lastBlob, lastName) : toast('Process first');
-  $('#again', root).onclick = () => { $('#pick', root).style.display = 'block'; ed.style.display = 'none'; curImg = null; };
-}
-T('image', 'image-resize', 'Image Resizer', 'Resize to exact pixels.', root => imageTool(root, {
-  button: 'Resize',
-  controls: `<div class="field"><label>Width (px)</label><input class="fld" id="iw" type="number"></div>
-    <div class="field"><label>Height (px)</label><input class="fld" id="ih" type="number"></div>
-    <div class="field"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ilock" checked style="width:17px;height:17px;accent-color:var(--accent)"> Lock aspect ratio</label></div>`,
-  onLoad: (root, img) => { $('#iw', root).value = img.naturalWidth; $('#ih', root).value = img.naturalHeight; const ar = img.naturalWidth / img.naturalHeight; $('#iw', root).oninput = () => { if ($('#ilock', root).checked) $('#ih', root).value = Math.round(num($('#iw', root).value) / ar); }; $('#ih', root).oninput = () => { if ($('#ilock', root).checked) $('#iw', root).value = Math.round(num($('#ih', root).value) * ar); }; },
-  read: root => ({ w: parseInt($('#iw', root).value), h: parseInt($('#ih', root).value) }),
-  draw: (img, c, o) => { c.width = o.w || img.naturalWidth; c.height = o.h || img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); },
-  name: f => 'resized-' + f.name.replace(/\.\w+$/, '') + '.png',
-}));
-T('image', 'image-compress', 'Image Compressor', 'Shrink JPG/WEBP file size.', root => imageTool(root, {
-  button: 'Compress',
-  controls: `<div class="field"><label>Quality <span class="hint" id="qv">80%</span></label><input type="range" id="iq" min="10" max="100" value="80" style="width:100%;accent-color:var(--accent)"></div>
-    <div class="field"><label>Format</label><select class="fld" id="ifmt"><option value="image/jpeg">JPEG</option><option value="image/webp">WEBP</option></select></div>`,
-  onLoad: root => { $('#iq', root).oninput = e => $('#qv', root).textContent = e.target.value + '%'; },
-  read: root => ({ quality: num($('#iq', root).value) / 100, mime: $('#ifmt', root).value }),
-  draw: (img, c) => { c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0); },
-  name: (f, o) => 'compressed-' + f.name.replace(/\.\w+$/, '') + (o.mime === 'image/webp' ? '.webp' : '.jpg'),
-}));
-T('image', 'image-convert', 'Image Format Converter', 'PNG ⇄ JPG ⇄ WEBP.', root => imageTool(root, {
-  button: 'Convert',
-  controls: `<div class="field"><label>Convert to</label><select class="fld" id="cfmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>`,
-  read: root => ({ mime: $('#cfmt', root).value, quality: 0.92 }),
-  draw: (img, c, o) => { c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); if (o.mime === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); } x.drawImage(img, 0, 0); },
-  name: (f, o) => f.name.replace(/\.\w+$/, '') + (o.mime === 'image/png' ? '.png' : o.mime === 'image/webp' ? '.webp' : '.jpg'),
-}));
-T('image', 'image-rotate-flip', 'Rotate & Flip', 'Rotate 90° steps and mirror.', root => imageTool(root, {
-  button: 'Apply',
-  controls: `<div class="field"><label>Rotate</label><select class="fld" id="rdeg"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></div>
-    <div class="field"><label>Flip</label><select class="fld" id="rflip"><option value="none">None</option><option value="h">Horizontal</option><option value="v">Vertical</option></select></div>`,
-  read: root => ({ deg: parseInt($('#rdeg', root).value), flip: $('#rflip', root).value }),
-  draw: (img, c, o) => { const w = img.naturalWidth, h = img.naturalHeight, r = o.deg % 180 !== 0; c.width = r ? h : w; c.height = r ? w : h; const x = c.getContext('2d'); x.translate(c.width / 2, c.height / 2); x.rotate(o.deg * Math.PI / 180); x.scale(o.flip === 'h' ? -1 : 1, o.flip === 'v' ? -1 : 1); x.drawImage(img, -w / 2, -h / 2); },
-  name: f => 'edited-' + f.name.replace(/\.\w+$/, '') + '.png',
-}));
-T('image', 'image-grayscale', 'Grayscale & Filters', 'Grayscale, sepia, invert, blur.', root => imageTool(root, {
-  button: 'Apply',
-  controls: `<div class="field"><label>Filter</label><select class="fld" id="gfx"><option value="grayscale(1)">Grayscale</option><option value="sepia(1)">Sepia</option><option value="invert(1)">Invert</option><option value="blur(4px)">Blur</option><option value="contrast(1.4)">High contrast</option><option value="brightness(1.3)">Brighten</option></select></div>`,
-  read: root => ({ fx: $('#gfx', root).value }),
-  draw: (img, c, o) => { c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); x.filter = o.fx; x.drawImage(img, 0, 0); },
-  name: f => 'filtered-' + f.name.replace(/\.\w+$/, '') + '.png',
-}));
-T('image', 'image-base64', 'Image → Base64', 'Encode an image as a data URI.', root => imageTool(root, {
-  button: 'Encode', extra: true,
-  draw: (img, c) => { c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0); },
-  afterBlob: (root, blob, canvas) => { const url = canvas.toDataURL('image/png'); $('#extra', root).innerHTML = `<div style="margin-top:16px">${outBlock(url, 'b64out', 'image-base64.txt', false)}</div>`; },
-  name: () => 'image.png',
-}));
+  wrap.innerHTML = `<div class="dropzone" id="dz">⬆ Click or drop an image here<br><span class="subtle">PNG · JPG · WEBP · GIF — never leaves your browser</span></div><input type="file" id="fi" accept="image
 
-/* ================================================================
-   App shell: nav, router, search, theme
-   ================================================================ */
-/* ================================================================
-   App shell — MULTI-PAGE.
-   index.html  →  <body data-home>      (homepage)
-   tools/x.html →  <body data-tool="x">  (one tool per file)
-   Both load this same shared js/main.js, which builds the chrome.
-   ================================================================ */
 const byId = id => TOOLS.find(t => t.id === id);
-const IN_TOOLS = !!document.body.dataset.tool || /\/tools\//.test(location.pathname);
+const IN_TOOLS = !!document.body.dataset.tool || /\/tools\
 const CURRENT  = document.body.dataset.tool || '';
 const toolHref = id => (IN_TOOLS ? '' : 'tools/') + id + '.html';
 const homeHref = () => IN_TOOLS ? '../index.html' : 'index.html';
 
-/* expose registry so other scripts/pages can introspect */
 window.Toolbox = { TOOLS, CATS, byId };
 
-/* build the shared chrome into #root (or <body> fallback) */
 const host = document.getElementById('root') || document.body;
 host.innerHTML = `
   <div id="app">
     <aside id="sidebar">
       <div class="brand">
-        <a class="brand-mark" href="${homeHref()}">/</a>
-        <a class="brand-name" href="${homeHref()}" style="color:var(--ink)">Toolbox</a>
+        <a class="brand-mark" href="${homeHref()}">FT</a>
+        <a class="brand-name" href="${homeHref()}" style="color:var(--ink)">FreeToolHub</a>
         <button id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
       </div>
       <div class="search-wrap"><input id="search" type="search" placeholder="Search tools…  ( / )" autocomplete="off" spellcheck="false"></div>
       <nav id="nav"></nav>
-      <div class="side-foot"><span id="tool-count"></span> tools · 100% in-browser</div>
+      <div class="side-foot"><span id="tool-count"></span> tools · Free · No Login · 100% in-browser</div>
     </aside>
     <main id="main">
       <header id="topbar">
@@ -1150,16 +1028,27 @@ const cardGrid = items => `<div class="card-grid">${items.map(t => `<a class="to
 
 function buildHome() {
   $('#crumb').innerHTML = `<b>Home</b>`;
-  document.title = 'Toolbox — Free Online Tools';
+  document.title = 'FreeToolHub — 81 Free Online Tools. No Login.';
   view.innerHTML = `
-    <div class="home-hero">
-      <h1>Every tool you need,<br><span class="hl">100% in your browser.</span></h1>
-      <p>A fast, private collection of ${TOOLS.length} developer, text, finance, SEO &amp; everyday tools. Nothing is uploaded — everything runs locally and works offline.</p>
+    <div class="home-hero anim-fade">
+      <div class="hero-badge"><span class="hero-dot"></span> 100% Free &nbsp;·&nbsp; No Login &nbsp;·&nbsp; Works Offline</div>
+      <h1>Every tool you need,<br><span class="hl">always free.</span></h1>
+      <p>A fast, private collection of <strong>${TOOLS.length} tools</strong> — developer, text, finance, SEO &amp; image. Nothing is uploaded. Everything runs locally in your browser.</p>
+      <div class="hero-stats">
+        <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
+        <div class="hstat"><span class="hstat-n">0</span><span class="hstat-l">Login Required</span></div>
+        <div class="hstat"><span class="hstat-n">100%</span><span class="hstat-l">Browser-Based</span></div>
+        <div class="hstat"><span class="hstat-n">0₹</span><span class="hstat-l">Forever Free</span></div>
+      </div>
     </div>
-    ${CATS.map(c => {
+    ${CATS.map((c, ci) => {
       const items = TOOLS.filter(t => t.cat === c.id);
-      return `<section class="home-cat">
-        <div class="home-cat-head"><h2>${c.name}</h2><span>${items.length} tools</span></div>
+      return `<section class="home-cat anim-slide" style="animation-delay:${ci * 0.05}s">
+        <div class="home-cat-head">
+          <span class="cat-ic">${c.ic}</span>
+          <h2>${c.name}</h2>
+          <span>${items.length} tools</span>
+        </div>
         ${cardGrid(items)}
       </section>`;
     }).join('')}`;
@@ -1175,16 +1064,15 @@ function buildTool(id) {
   const tool = byId(id);
   if (!tool) { $('#crumb').innerHTML = '<b>Not found</b>'; view.innerHTML = `<div class="empty-note">Tool “${esc(id)}” not found. <a href="${homeHref()}">Go home</a>.</div>`; return; }
   const cat = CATS.find(c => c.id === tool.cat);
-  document.title = tool.name + ' — Toolbox';
+  document.title = tool.name + ' — Free Online Tool | FreeToolHub';
   $('#crumb').innerHTML = `<a href="${homeHref()}" style="color:var(--muted)">Home</a> · ${cat.name} · <b>${tool.name}</b>`;
   view.innerHTML = `<div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div>`;
   tool.render($('#tool-mount', view));
-  // pull the static SEO/FAQ block (baked into the page for crawlers) into the view
+
   const seo = document.getElementById('tool-seo');
   if (seo) { seo.removeAttribute('hidden'); seo.style.display = ''; view.appendChild(seo); }
 }
 
-/* search: filter sidebar everywhere; on the homepage also swap the grid */
 const search = $('#search');
 search.addEventListener('input', () => {
   const q = search.value.trim();
@@ -1193,21 +1081,17 @@ search.addEventListener('input', () => {
 });
 document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== search && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); } });
 
-/* theme */
 const themeBtn = $('#theme-toggle');
 function setTheme(t) { document.documentElement.dataset.theme = t; localStorage.setItem('tb-theme', t); }
 themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 setTheme(localStorage.getItem('tb-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'));
 
-/* sidebar (mobile) */
 const sidebar = $('#sidebar'), scrim = $('#scrim');
 $('#menu-btn').onclick = () => { sidebar.classList.add('open'); scrim.classList.add('show'); };
 scrim.onclick = () => { sidebar.classList.remove('open'); scrim.classList.remove('show'); };
 
-/* misc */
 $('#random-tool').onclick = () => { location.href = toolHref(TOOLS[Math.floor(Math.random() * TOOLS.length)].id); };
 $('#tool-count').textContent = TOOLS.length;
 
-/* boot */
 renderNav();
 if (IN_TOOLS) buildTool(CURRENT); else buildHome();
