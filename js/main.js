@@ -1112,7 +1112,20 @@ host.innerHTML = `
   <div id="app">
     <aside id="sidebar">
       <div class="brand">
-        <a class="brand-mark" href="${homeHref()}">FT</a>
+        <a class="brand-mark" href="${homeHref()}" style="background:none;width:34px;height:34px;display:grid;place-items:center;padding:0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="34" height="34">
+            <rect width="100" height="100" rx="18" fill="#1b1a17"/>
+            <polygon points="50,8 82,26 82,62 50,80 18,62 18,26" fill="none" stroke="#ec5a13" stroke-width="5"/>
+            <polygon points="50,24 68,34 68,54 50,64 32,54 32,34" fill="#ec5a13"/>
+            <text x="50" y="56" font-size="22" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700">FT</text>
+            <circle cx="50" cy="8" r="4" fill="#ec5a13"/>
+            <circle cx="82" cy="26" r="4" fill="#ec5a13"/>
+            <circle cx="82" cy="62" r="4" fill="#ec5a13"/>
+            <circle cx="50" cy="80" r="4" fill="#ec5a13"/>
+            <circle cx="18" cy="62" r="4" fill="#ec5a13"/>
+            <circle cx="18" cy="26" r="4" fill="#ec5a13"/>
+          </svg>
+        </a>
         <a class="brand-name" href="${homeHref()}" style="color:var(--ink)">FreeToolHub</a>
         <button id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
       </div>
