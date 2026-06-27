@@ -989,7 +989,7 @@ T('seo', 'faq-schema', 'FAQ Schema', 'FAQPage JSON-LD structured data.', root =>
 }));
 T('seo', 'article-schema', 'Article Schema', 'Article JSON-LD structured data.', root => calcTool(root, {
   button: 'Generate', auto: true,
-  fields: [{ id: 'headline', label: 'Headline', type: 'text', value: 'How to use Toolbox' }, { id: 'author', label: 'Author', type: 'text', value: 'Jane Doe' }, { id: 'date', label: 'Published date', type: 'date' }, { id: 'img', label: 'Image URL', type: 'text', value: 'https://example.com/cover.jpg' }],
+  fields: [{ id: 'headline', label: 'Headline', type: 'text', value: 'How to use FreeToolHub' }, { id: 'author', label: 'Author', type: 'text', value: 'Jane Doe' }, { id: 'date', label: 'Published date', type: 'date' }, { id: 'img', label: 'Image URL', type: 'text', value: 'https://example.com/cover.jpg' }],
   compute: v => { const data = { '@context': 'https://schema.org', '@type': 'Article', headline: v.headline, image: [v.img], author: { '@type': 'Person', name: v.author }, datePublished: v.date || new Date().toISOString().slice(0, 10) }; return outBlock('<script type="application/ld+json">\n' + JSON.stringify(data, null, 2) + '\n</' + 'script>', 'artout', 'article-schema.html', false); },
 }));
 T('seo', 'product-schema', 'Product Schema', 'Product JSON-LD with offer.', root => calcTool(root, {
@@ -1112,13 +1112,13 @@ host.innerHTML = `
   <div id="app">
     <aside id="sidebar">
       <div class="brand">
-        <a class="brand-mark" href="${homeHref()}">/</a>
-        <a class="brand-name" href="${homeHref()}" style="color:var(--ink)">Toolbox</a>
+        <a class="brand-mark" href="${homeHref()}">FT</a>
+        <a class="brand-name" href="${homeHref()}" style="color:var(--ink)">FreeToolHub</a>
         <button id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
       </div>
       <div class="search-wrap"><input id="search" type="search" placeholder="Search tools…  ( / )" autocomplete="off" spellcheck="false"></div>
       <nav id="nav"></nav>
-      <div class="side-foot"><span id="tool-count"></span> tools · 100% in-browser</div>
+      <div class="side-foot"><span id="tool-count"></span> tools · Free · No Login · 100% in-browser</div>
     </aside>
     <main id="main">
       <header id="topbar">
@@ -1150,16 +1150,27 @@ const cardGrid = items => `<div class="card-grid">${items.map(t => `<a class="to
 
 function buildHome() {
   $('#crumb').innerHTML = `<b>Home</b>`;
-  document.title = 'Toolbox — Free Online Tools';
+  document.title = 'FreeToolHub — 81 Free Online Tools. No Login.';
   view.innerHTML = `
-    <div class="home-hero">
-      <h1>Every tool you need,<br><span class="hl">100% in your browser.</span></h1>
-      <p>A fast, private collection of ${TOOLS.length} developer, text, finance, SEO &amp; everyday tools. Nothing is uploaded — everything runs locally and works offline.</p>
+    <div class="home-hero anim-fade">
+      <div class="hero-badge"><span class="hero-dot"></span> 100% Free &nbsp;·&nbsp; No Login &nbsp;·&nbsp; Works Offline</div>
+      <h1>Every tool you need,<br><span class="hl">always free.</span></h1>
+      <p>A fast, private collection of <strong>${TOOLS.length} tools</strong> — developer, text, finance, SEO &amp; image. Nothing is uploaded. Everything runs locally in your browser.</p>
+      <div class="hero-stats">
+        <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
+        <div class="hstat"><span class="hstat-n">0</span><span class="hstat-l">Login Required</span></div>
+        <div class="hstat"><span class="hstat-n">100%</span><span class="hstat-l">Browser-Based</span></div>
+        <div class="hstat"><span class="hstat-n">0₹</span><span class="hstat-l">Forever Free</span></div>
+      </div>
     </div>
-    ${CATS.map(c => {
+    ${CATS.map((c, ci) => {
       const items = TOOLS.filter(t => t.cat === c.id);
-      return `<section class="home-cat">
-        <div class="home-cat-head"><h2>${c.name}</h2><span>${items.length} tools</span></div>
+      return `<section class="home-cat anim-slide" style="animation-delay:${ci * 0.05}s">
+        <div class="home-cat-head">
+          <span class="cat-ic">${c.ic}</span>
+          <h2>${c.name}</h2>
+          <span>${items.length} tools</span>
+        </div>
         ${cardGrid(items)}
       </section>`;
     }).join('')}`;
@@ -1175,7 +1186,7 @@ function buildTool(id) {
   const tool = byId(id);
   if (!tool) { $('#crumb').innerHTML = '<b>Not found</b>'; view.innerHTML = `<div class="empty-note">Tool “${esc(id)}” not found. <a href="${homeHref()}">Go home</a>.</div>`; return; }
   const cat = CATS.find(c => c.id === tool.cat);
-  document.title = tool.name + ' — Toolbox';
+  document.title = tool.name + ' — Free Online Tool | FreeToolHub';
   $('#crumb').innerHTML = `<a href="${homeHref()}" style="color:var(--muted)">Home</a> · ${cat.name} · <b>${tool.name}</b>`;
   view.innerHTML = `<div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div>`;
   tool.render($('#tool-mount', view));
