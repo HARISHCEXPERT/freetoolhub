@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — FreeToolHub</title>
+<meta name="description" content="About FreeToolHub — 81+ free online tools built for developers, students, and professionals. No login, no data collection, works offline.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://freetoolhub.app/about.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231b1a17'/><polygon points='50,8 82,26 82,62 50,80 18,62 18,26' fill='none' stroke='%23ec5a13' stroke-width='5'/><polygon points='50,24 68,34 68,54 50,64 32,54 32,34' fill='%23ec5a13'/><text x='50' y='56' font-size='22' text-anchor='middle' fill='white' font-family='system-ui' font-weight='700'>FT</text></svg>">
+<style>
+.page-wrap { max-width: 740px; margin: 0 auto; padding: 48px 24px 80px; }
+.page-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--line); }
+.page-nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--ink); }
+.back-link { font-size: 13px; color: var(--muted); text-decoration: none; }
+.back-link:hover { color: var(--accent); }
+h1 { font-family: var(--display); font-size: 36px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 16px; line-height: 1.1; }
+h1 span { color: var(--accent); }
+.tagline { font-size: 18px; color: var(--muted); line-height: 1.6; margin-bottom: 40px; max-width: 540px; }
+h2 { font-family: var(--display); font-size: 18px; font-weight: 600; margin: 40px 0 12px; letter-spacing: -0.01em; }
+p { font-size: 15px; line-height: 1.75; color: var(--muted); margin: 0 0 14px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 28px 0; }
+.stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; text-align: center; }
+.stat-card .n { font-family: var(--display); font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: -0.03em; line-height: 1; }
+.stat-card .l { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+.principle-list { display: flex; flex-direction: column; gap: 16px; margin: 20px 0; }
+.principle { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.principle-ic { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.principle-title { font-family: var(--display); font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--ink); }
+.principle-desc { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.cat-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.cat-chip { background: var(--panel); border: 1px solid var(--line); border-radius: 100px; padding: 5px 14px; font-size: 13px; color: var(--muted); font-weight: 500; }
+a { color: var(--accent-ink); }
+footer { border-top: 1px solid var(--line); padding: 24px; text-align: center; font-size: 12px; color: var(--muted); }
+footer a { color: var(--muted); text-decoration: none; margin: 0 10px; }
+footer a:hover { color: var(--accent); }
+
+.page-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.page-nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: .12s;
+}
+.page-nav-links a:hover { color: var(--accent); background: var(--accent-soft); }
+.page-nav-active { color: var(--accent-ink) !important; background: var(--accent-soft) !important; }
+.back-link { margin-left: 4px !important; }
+.page-footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 24px;
+  background: var(--panel);
+}
+.page-footer-inner { max-width: 740px; margin: 0 auto; }
+.page-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+.page-footer-links {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.page-footer-links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+.page-footer-links a:hover { color: var(--accent); }
+.page-footer-copy {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+@media (max-width: 600px) {
+  .page-nav-links a:not(.back-link) { display: none; }
+  .page-footer-links { gap: 12px; }
+}
+</style>
+</head>
+<body>
+<nav class="page-nav">
+  <a href="index.html" class="page-nav-brand">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
+      <rect width="100" height="100" rx="18" fill="#1b1a17"/>
+      <polygon points="50,8 82,26 82,62 50,80 18,62 18,26" fill="none" stroke="#ec5a13" stroke-width="5"/>
+      <polygon points="50,24 68,34 68,54 50,64 32,54 32,34" fill="#ec5a13"/>
+      <text x="50" y="56" font-size="22" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700">FT</text>
+    </svg>
+    FreeToolHub
+  </a>
+  <div class="page-nav-links">
+    <a href="about.html" class="page-nav-active">About</a>
+    <a href="privacy.html" class="">Privacy</a>
+    <a href="terms.html" class="">Terms</a>
+    <a href="index.html" class="back-link">← Tools</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <h1>Every tool you need,<br><span>always free.</span></h1>
+  <p class="tagline">FreeToolHub is a collection of fast, private, browser-based tools built for developers, students, and everyday professionals.</p>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="n">81+</div><div class="l">Free Tools</div></div>
+    <div class="stat-card"><div class="n">0</div><div class="l">Login Required</div></div>
+    <div class="stat-card"><div class="n">0KB</div><div class="l">Data Uploaded</div></div>
+    <div class="stat-card"><div class="n">100%</div><div class="l">Browser-Based</div></div>
+  </div>
+
+  <h2>Why we built this</h2>
+  <p>Every developer, student, and professional needs quick-access tools — a JSON formatter, a unit converter, an EMI calculator. But most tool sites are bloated with ads, require accounts, or silently upload your data to a server.</p>
+  <p>FreeToolHub is different. We believe useful tools should be fast, private, and accessible to everyone — regardless of internet speed, device, or technical skill.</p>
+
+  <h2>Our principles</h2>
+  <div class="principle-list">
+    <div class="principle">
+      <div class="principle-ic">🔒</div>
+      <div>
+        <div class="principle-title">Privacy first</div>
+        <div class="principle-desc">Everything runs in your browser. Your text, files, and data never touch our servers. Not because we say so — because there's no server to send it to.</div>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-ic">⚡</div>
+      <div>
+        <div class="principle-title">Fast by default</div>
+        <div class="principle-desc">No server round-trips means instant results. Most tools respond as you type. Works offline too — just load the page once.</div>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-ic">🆓</div>
+      <div>
+        <div class="principle-title">Free forever</div>
+        <div class="principle-desc">All 81+ tools are free, with no paywalls, no "pro" gating, no sign-up required. We keep the lights on through non-intrusive ads.</div>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-ic">📱</div>
+      <div>
+        <div class="principle-title">Works everywhere</div>
+        <div class="principle-desc">Every tool is responsive and tested on mobile, tablet, and desktop. Built for India's diverse device landscape.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Tool categories</h2>
+  <div class="cat-chips">
+    <span class="cat-chip">{} Developer</span>
+    <span class="cat-chip">¶ Text</span>
+    <span class="cat-chip">₹ Finance</span>
+    <span class="cat-chip">◎ Everyday</span>
+    <span class="cat-chip">✎ Student</span>
+    <span class="cat-chip">⌁ SEO & Web</span>
+    <span class="cat-chip">▣ Image</span>
+  </div>
+  <p>From JSON formatters and regex testers to EMI calculators, GST tools, salary converters, QR code generators, and image compressors — we cover the full stack of everyday needs.</p>
+
+  <h2>Contact</h2>
+  <p>Have a suggestion for a new tool? Found a bug? We'd love to hear from you.</p>
+  <p>📧 <a href="mailto:hello@freetoolhub.app">hello@freetoolhub.app</a></p>
+</div>
+
+<footer class="page-footer">
+  <div class="page-footer-inner">
+    <div class="page-footer-brand">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22">
+        <rect width="100" height="100" rx="18" fill="#1b1a17"/>
+        <polygon points="50,8 82,26 82,62 50,80 18,62 18,26" fill="none" stroke="#ec5a13" stroke-width="5"/>
+        <polygon points="50,24 68,34 68,54 50,64 32,54 32,34" fill="#ec5a13"/>
+        <text x="50" y="56" font-size="22" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700">FT</text>
+      </svg>
+      <span>FreeToolHub</span>
+    </div>
+    <div class="page-footer-links">
+      <a href="index.html">All Tools</a>
+      <a href="about.html">About</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="mailto:hello@freetoolhub.app">Contact</a>
+    </div>
+    <div class="page-footer-copy">© 2025 FreeToolHub.app · 81+ free tools · No login · No data collected</div>
+  </div>
+</footer>
+</body>
+</html>
