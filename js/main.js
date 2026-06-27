@@ -1131,7 +1131,14 @@ host.innerHTML = `
       </div>
       <div class="search-wrap"><input id="search" type="search" placeholder="Search tools…  ( / )" autocomplete="off" spellcheck="false"></div>
       <nav id="nav"></nav>
-      <div class="side-foot"><span id="tool-count"></span> tools · Free · No Login · 100% in-browser</div>
+      <div class="side-foot">
+        <span id="tool-count"></span> tools · Free · No Login · 100% in-browser
+        <div class="side-foot-links">
+          <a href="${homeHref().replace('index.html','about.html')}about.html">About</a>
+          <a href="${homeHref().replace('index.html','privacy.html')}privacy.html">Privacy</a>
+          <a href="${homeHref().replace('index.html','terms.html')}terms.html">Terms</a>
+        </div>
+      </div>
     </aside>
     <main id="main">
       <header id="topbar">
@@ -1186,7 +1193,28 @@ function buildHome() {
         </div>
         ${cardGrid(items)}
       </section>`;
-    }).join('')}`;
+    }).join('')}
+    <footer class="home-footer">
+      <div class="home-footer-inner">
+        <div class="home-footer-brand">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="24" height="24">
+            <rect width="100" height="100" rx="18" fill="#1b1a17"/>
+            <polygon points="50,8 82,26 82,62 50,80 18,62 18,26" fill="none" stroke="#ec5a13" stroke-width="5"/>
+            <polygon points="50,24 68,34 68,54 50,64 32,54 32,34" fill="#ec5a13"/>
+            <text x="50" y="56" font-size="22" text-anchor="middle" fill="white" font-family="system-ui" font-weight="700">FT</text>
+          </svg>
+          <span>FreeToolHub</span>
+        </div>
+        <p class="home-footer-desc">81+ free browser-based tools. No login, no data collection, works offline.</p>
+        <div class="home-footer-links">
+          <a href="about.html">About</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="mailto:hello@freetoolhub.app">Contact</a>
+        </div>
+        <div class="home-footer-copy">© 2025 FreeToolHub.app · All tools free forever</div>
+      </div>
+    </footer>`;
 }
 
 function renderSearch(q) {
