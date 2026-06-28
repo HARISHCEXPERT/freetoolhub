@@ -1158,7 +1158,7 @@ host.innerHTML = `
   <div id="scrim"></div>
   <div id="toast"></div>`;
 
-const view = $('#view'), nav = $('#nav');
+const view = $('#view');
 
 function renderNav(filter = '') {
   const q = filter.trim().toLowerCase();
@@ -1175,15 +1175,21 @@ function renderNav(filter = '') {
 const cardGrid = items => `<div class="card-grid">${items.map(t => `<a class="tool-card" href="${toolHref(t.id)}"><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></a>`).join('')}</div>`;
 
 function buildHome() {
-  $('#crumb').innerHTML = `<b>Home</b>`;
   document.title = 'FreeToolHub — 81 Free Online Tools. No Login.';
   view.innerHTML = `
-    <div class="home-hero anim-fade">
+    <div class="home-wrap"><div class="home-hero anim-fade">
       <canvas id="hero-canvas"></canvas>
       <div class="hero-content">
         <div class="hero-badge"><span class="hero-dot"></span> 100% Free &nbsp;·&nbsp; No Login &nbsp;·&nbsp; Works Offline</div>
         <h1>Every tool you need,<br><span class="hl">always free.</span></h1>
         <p>A fast, private collection of <strong>${TOOLS.length} tools</strong> — developer, text, finance, SEO &amp; image. Nothing is uploaded. Everything runs locally in your browser.</p>
+        <div class="home-search-wrap">
+          <span class="home-search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </span>
+          <input id="home-search" type="search" placeholder="Search 81 tools — JSON, EMI, QR code, Password..." autocomplete="off" spellcheck="false">
+          <span class="home-search-kbd">⌘K</span>
+        </div>
         <div class="hero-stats">
           <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
           <div class="hstat"><span class="hstat-n">0</span><span class="hstat-l">Login Required</span></div>
@@ -1192,6 +1198,8 @@ function buildHome() {
         </div>
       </div>
     </div>
+    </div>
+    <div class="home-cat-grid">
     ${CATS.map((c, ci) => {
       const items = TOOLS.filter(t => t.cat === c.id);
       return `<section class="home-cat anim-slide" style="animation-delay:${ci * 0.05}s">
@@ -1203,6 +1211,7 @@ function buildHome() {
         ${cardGrid(items)}
       </section>`;
     }).join('')}
+    </div>
     <footer class="home-footer">
       <div class="home-footer-inner">
         <div class="home-footer-brand">
@@ -1237,22 +1246,30 @@ function buildTool(id) {
   if (!tool) { $('#crumb').innerHTML = '<b>Not found</b>'; view.innerHTML = `<div class="empty-note">Tool “${esc(id)}” not found. <a href="${homeHref()}">Go home</a>.</div>`; return; }
   const cat = CATS.find(c => c.id === tool.cat);
   document.title = tool.name + ' — Free Online Tool | FreeToolHub';
-  $('#crumb').innerHTML = `<a href="${homeHref()}" style="color:var(--muted)">Home</a> · ${cat.name} · <b>${tool.name}</b>`;
-  view.innerHTML = `<div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div>`;
+  view.innerHTML = `<div class="tool-view-wrap"><div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div></div>`;
   tool.render($('#tool-mount', view));
-  // pull the static SEO/FAQ block (baked into the page for crawlers) into the view
   const seo = document.getElementById('tool-seo');
-  if (seo) { seo.removeAttribute('hidden'); seo.style.display = ''; view.appendChild(seo); }
+  if (seo) {
+    seo.removeAttribute('hidden');
+    seo.style.display = '';
+    const wrap = view.querySelector('.tool-view-wrap');
+    if (wrap) wrap.appendChild(seo); else view.appendChild(seo);
+  }
 }
 
-/* search: filter sidebar everywhere; on the homepage also swap the grid */
-const search = $('#search');
-search.addEventListener('input', () => {
-  const q = search.value.trim();
-  renderNav(q);
-  if (!IN_TOOLS) { if (q) renderSearch(q); else { buildHome(); initHeroCanvas(); } }
+/* search — home page big search bar */
+document.addEventListener('input', e => {
+  if (e.target.id === 'home-search') {
+    const q = e.target.value.trim();
+    if (!IN_TOOLS) { if (q) renderSearch(q); else { buildHome(); initHeroCanvas(); } }
+  }
 });
-document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== search && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); } });
+document.addEventListener('keydown', e => {
+  const hs = document.getElementById('home-search');
+  if (e.key === '/' && hs && document.activeElement !== hs && !/input|textarea/i.test(document.activeElement.tagName)) {
+    e.preventDefault(); hs.focus();
+  }
+});
 
 /* theme */
 const themeBtn = $('#theme-toggle');
@@ -1260,10 +1277,9 @@ function setTheme(t) { document.documentElement.dataset.theme = t; localStorage.
 themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 setTheme(localStorage.getItem('tb-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'));
 
-/* sidebar (mobile) */
-const sidebar = $('#sidebar'), scrim = $('#scrim');
-$('#menu-btn').onclick = () => { sidebar.classList.add('open'); scrim.classList.add('show'); };
-scrim.onclick = () => { sidebar.classList.remove('open'); scrim.classList.remove('show'); };
+/* scrim */
+const scrim = $('#scrim');
+scrim.onclick = () => scrim.classList.remove('show');
 
 /* misc */
 $('#random-tool').onclick = () => { location.href = toolHref(TOOLS[Math.floor(Math.random() * TOOLS.length)].id); };
@@ -1315,10 +1331,10 @@ function initDotGrid() {
       const dx = d.x - mouse.x;
       const dy = d.y - mouse.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const glow = dist < 100 ? (1 - dist / 100) * 0.7 : 0;
-      const pulse = 0.07 + Math.sin(t * 0.0006 + d.phase) * 0.025;
-      const alpha = Math.min(0.9, pulse + glow);
-      const r = glow > 0.05 ? d.r + glow * 3 : d.r;
+      const glow = dist < 100 ? (1 - dist / 100) * 0.65 : 0;
+      const pulse = 0.05 + Math.sin(t * 0.0006 + d.phase) * 0.02;
+      const alpha = Math.min(0.85, pulse + glow);
+      const r = glow > 0.05 ? d.r + glow * 2.5 : d.r;
       ctx.beginPath();
       ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
       ctx.fillStyle = dotColor(alpha.toFixed(3));
@@ -1378,6 +1394,11 @@ function initHeroCanvas() {
     ctx.clearRect(0, 0, W, H);
     const C = getColors();
     const leftBound = W * 0.52;
+    // Fade pills when user scrolls down
+    const view = document.getElementById('view');
+    const scrollY = view ? view.scrollTop : 0;
+    const scrollFade = Math.max(0, 1 - scrollY / 300);
+    if (scrollFade <= 0) return;
 
     pills.forEach(p => {
       p.x += p.vx;
@@ -1387,7 +1408,7 @@ function initHeroCanvas() {
       if (p.y < -30)        { p.y = H * 0.9; }
       if (p.y > H * 0.95)  { p.y = -15; }
 
-      const alpha = 0.55 + Math.sin(t * 0.0007 + p.phase) * 0.2;
+      const alpha = (0.55 + Math.sin(t * 0.0007 + p.phase) * 0.2) * scrollFade;
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.font = `500 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
