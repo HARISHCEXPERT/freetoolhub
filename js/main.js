@@ -1273,15 +1273,14 @@ $('#tool-count').textContent = TOOLS.length;
 renderNav();
 if (IN_TOOLS) buildTool(CURRENT); else { buildHome(); initHeroCanvas(); }
 
-/* ── Hero Canvas: Floating Tool Pills + Dot Grid Pulse ── */
+/* ── Hero Canvas: Subtle Floating Pills + Dot Grid ── */
 function initHeroCanvas() {
   const canvas = document.getElementById('hero-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let W, H, pills = [], dots = [], mouse = { x: -999, y: -999 };
-  const ACCENT = '#ec5a13';
   const ACCENT_A = 'rgba(236,90,19,';
-  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 28);
+  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 22);
 
   function resize() {
     W = canvas.width = canvas.offsetWidth;
@@ -1292,23 +1291,21 @@ function initHeroCanvas() {
 
   function buildDots() {
     dots = [];
-    const gap = 36;
-    for (let x = gap; x < W; x += gap) {
-      for (let y = gap; y < H; y += gap) {
-        dots.push({ x, y, base: 0.13, r: 2.2 });
-      }
-    }
+    const gap = 40;
+    for (let x = gap; x < W; x += gap)
+      for (let y = gap; y < H; y += gap)
+        dots.push({ x, y, r: 1.5, phase: Math.random() * Math.PI * 2 });
   }
 
   function buildPills() {
-    pills = tool_names.map((name, i) => ({
+    pills = tool_names.map(name => ({
       name,
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.38,
-      vy: (Math.random() - 0.5) * 0.28,
-      alpha: 0.12 + Math.random() * 0.13,
-      fontSize: 11 + Math.floor(Math.random() * 4),
+      vx: (Math.random() - 0.5) * 0.22,
+      vy: (Math.random() - 0.5) * 0.18,
+      alpha: 0.04 + Math.random() * 0.05,
+      fontSize: 10 + Math.floor(Math.random() * 3),
       phase: Math.random() * Math.PI * 2,
     }));
   }
@@ -1317,12 +1314,11 @@ function initHeroCanvas() {
     dots.forEach(d => {
       const dx = d.x - mouse.x, dy = d.y - mouse.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const glow = dist < 90 ? (1 - dist / 90) * 0.75 : 0;
-      const pulse = d.base + Math.sin(t * 0.001 + d.x * 0.05 + d.y * 0.04) * 0.04;
-      const alpha = pulse + glow;
+      const glow = dist < 80 ? (1 - dist / 80) * 0.6 : 0;
+      const base = 0.06 + Math.sin(t * 0.0007 + d.phase) * 0.02;
       ctx.beginPath();
-      ctx.arc(d.x, d.y, glow > 0 ? d.r + glow * 2.5 : d.r, 0, Math.PI * 2);
-      ctx.fillStyle = ACCENT_A + alpha.toFixed(2) + ')';
+      ctx.arc(d.x, d.y, glow > 0.1 ? d.r + glow * 2 : d.r, 0, Math.PI * 2);
+      ctx.fillStyle = ACCENT_A + (base + glow).toFixed(2) + ')';
       ctx.fill();
     });
   }
@@ -1331,27 +1327,25 @@ function initHeroCanvas() {
     pills.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < -120) p.x = W + 60;
-      if (p.x > W + 120) p.x = -60;
-      if (p.y < -40) p.y = H + 20;
-      if (p.y > H + 40) p.y = -20;
-      const breathe = p.alpha + Math.sin(t * 0.0008 + p.phase) * 0.04;
+      if (p.x < -140) p.x = W + 70;
+      if (p.x > W + 140) p.x = -70;
+      if (p.y < -30) p.y = H + 15;
+      if (p.y > H + 30) p.y = -15;
+      const alpha = p.alpha + Math.sin(t * 0.0006 + p.phase) * 0.02;
       ctx.save();
-      ctx.globalAlpha = breathe;
-      ctx.font = `500 ${p.fontSize}px "Space Grotesk", system-ui, sans-serif`;
+      ctx.globalAlpha = alpha;
+      ctx.font = `500 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
       const tw = ctx.measureText(p.name).width;
-      const ph = p.fontSize + 10, pw = tw + 22, rx = 100;
+      const ph = p.fontSize + 8, pw = tw + 18;
       const x = p.x - pw / 2, y = p.y - ph / 2;
-      // pill bg
       ctx.beginPath();
       ctx.roundRect(x, y, pw, ph, ph / 2);
-      ctx.fillStyle = ACCENT_A + '0.07)';
+      ctx.fillStyle = ACCENT_A + '0.05)';
       ctx.fill();
-      ctx.strokeStyle = ACCENT_A + '0.22)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = ACCENT_A + '0.15)';
+      ctx.lineWidth = 0.8;
       ctx.stroke();
-      // text
-      ctx.fillStyle = ACCENT;
+      ctx.fillStyle = 'rgba(236,90,19,0.6)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(p.name, p.x, p.y);
