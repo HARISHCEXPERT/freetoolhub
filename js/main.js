@@ -1137,7 +1137,35 @@ const view = $('#view');
 
 function renderNav() {}
 
-const cardGrid = items => `<div class="card-grid">${items.map(t => `<a class="tool-card" href="${toolHref(t.id)}"><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></a>`).join('')}</div>`;
+const cardGrid = items => `<div class="card-grid">${items.map(t => `<a class="tool-card" href="${toolHref(t.id)}" onclick="saveScroll()"><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></a>`).join('')}</div>`;
+
+function saveScroll() {
+  sessionStorage.setItem('ftHub_scroll', window.scrollY);
+  sessionStorage.setItem('ftHub_cat', document.querySelector('.cat-pill.active')?.dataset.cat || 'all');
+}
+
+function restoreScroll() {
+  const y = sessionStorage.getItem('ftHub_scroll');
+  const cat = sessionStorage.getItem('ftHub_cat');
+  if (cat && cat !== 'all') {
+    filterCat(cat);
+  }
+  if (y) {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: parseInt(y), behavior: 'instant' });
+      sessionStorage.removeItem('ftHub_scroll');
+    });
+  }
+}
+
+function filterCat(cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.cat === cat);
+  });
+  document.querySelectorAll('.home-cat').forEach(s => {
+    s.style.display = (cat === 'all' || s.dataset.cat === cat) ? '' : 'none';
+  });
+}
 
 function buildHome() {
   document.title = 'FreeToolHub — 81 Free Online Tools. No Login.';
@@ -1152,7 +1180,7 @@ function buildHome() {
           <span class="home-search-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
-          <input id="home-search" type="search" placeholder="Search 81 tools — JSON, EMI, QR code, Password..." autocomplete="off" spellcheck="false">
+          <input id="home-search" type="search" placeholder="Search 81 tools..." autocomplete="off" spellcheck="false">
           <span class="home-search-kbd">⌘K</span>
         </div>
         <div class="hero-stats">
@@ -1165,9 +1193,13 @@ function buildHome() {
     </div>
     </div>
     <div class="home-cat-grid">
+    <div class="cat-pills">
+      <button class="cat-pill active" data-cat="all" onclick="filterCat('all')">All</button>
+      ${CATS.map(c => `<button class="cat-pill" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.ic} ${c.name}</button>`).join('')}
+    </div>
     ${CATS.map((c, ci) => {
       const items = TOOLS.filter(t => t.cat === c.id);
-      return `<section class="home-cat anim-slide" style="animation-delay:${ci * 0.05}s">
+      return `<section class="home-cat anim-slide" data-cat="${c.id}" style="animation-delay:${ci * 0.05}s">
         <div class="home-cat-head">
           <span class="cat-ic">${c.ic}</span>
           <h2>${c.name}</h2>
@@ -1400,4 +1432,34 @@ function initHeroCanvas() {
   window.addEventListener('resize', resize);
   resize();
   (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
+}
+
+/* ── Typewriter placeholder ── */
+function initTypewriter() {
+  const input = document.getElementById('home-search');
+  if (!input) return;
+  const phrases = [
+    'JSON Formatter', 'EMI Calculator', 'QR Code Generator',
+    'Password Generator', 'GST Calculator', 'Regex Tester',
+    'Base64 Encoder', 'Unit Converter', 'Age Calculator',
+    'JWT Decoder', 'Word Counter', 'UUID Generator'
+  ];
+  let pi = 0, ci = 0, deleting = false;
+  const prefix = 'Search — ';
+  function type() {
+    if (document.activeElement === input) { setTimeout(type, 200); return; }
+    const phrase = phrases[pi];
+    if (!deleting) {
+      input.placeholder = prefix + phrase.slice(0, ci + 1);
+      ci++;
+      if (ci === phrase.length) { deleting = true; setTimeout(type, 1800); return; }
+      setTimeout(type, 80);
+    } else {
+      input.placeholder = prefix + phrase.slice(0, ci - 1);
+      ci--;
+      if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(type, 400); return; }
+      setTimeout(type, 40);
+    }
+  }
+  setTimeout(type, 1000);
 }
