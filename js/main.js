@@ -1338,35 +1338,37 @@ function initDotGrid() {
   (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
 }
 
-/* ── Hero Pills — floating tool names in hero only ── */
+/* ── Hero Pills — floating tool names, RIGHT side only ── */
 function initHeroCanvas() {
   const canvas = document.getElementById('hero-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let W, H, pills = [];
-  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 24);
+  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 20);
 
   function isDark() { return document.documentElement.dataset.theme === 'dark'; }
 
   function getColors() {
     return isDark()
-      ? { pill: 'rgba(255,255,255,0.06)', border: 'rgba(236,90,19,0.3)', text: 'rgba(255,150,90,0.9)' }
-      : { pill: 'rgba(236,90,19,0.07)', border: 'rgba(180,60,0,0.25)', text: 'rgba(160,50,0,0.85)' };
+      ? { pill: 'rgba(255,255,255,0.05)', border: 'rgba(236,90,19,0.25)', text: 'rgba(255,150,90,0.75)' }
+      : { pill: 'rgba(236,90,19,0.06)', border: 'rgba(180,60,0,0.2)', text: 'rgba(150,45,0,0.7)' };
   }
 
   function resize() {
-    W = canvas.width = canvas.offsetWidth;
-    H = canvas.height = canvas.offsetHeight;
-    if (!pills.length) buildPills();
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildPills();
   }
 
   function buildPills() {
+    // Pills in right 50% of screen — left side has hero text
+    const leftBound = W * 0.52;
     pills = tool_names.map(name => ({
       name,
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.28,
-      vy: (Math.random() - 0.5) * 0.18,
+      x: leftBound + Math.random() * (W - leftBound),
+      y: Math.random() * H * 0.9,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.15,
       fontSize: 11 + Math.floor(Math.random() * 3),
       phase: Math.random() * Math.PI * 2,
     }));
@@ -1375,28 +1377,32 @@ function initHeroCanvas() {
   function draw(t) {
     ctx.clearRect(0, 0, W, H);
     const C = getColors();
+    const leftBound = W * 0.52;
+
     pills.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < -140) p.x = W + 70;
-      if (p.x > W + 140) p.x = -70;
-      if (p.y < -30) p.y = H + 15;
-      if (p.y > H + 30) p.y = -15;
+      if (p.x < leftBound) { p.x = leftBound; p.vx = Math.abs(p.vx); }
+      if (p.x > W + 120)   { p.x = leftBound + Math.random() * 100; }
+      if (p.y < -30)        { p.y = H * 0.9; }
+      if (p.y > H * 0.95)  { p.y = -15; }
 
-      const alpha = 0.7 + Math.sin(t * 0.0007 + p.phase) * 0.3;
+      const alpha = 0.55 + Math.sin(t * 0.0007 + p.phase) * 0.2;
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.font = `600 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
+      ctx.font = `500 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
       const tw = ctx.measureText(p.name).width;
-      const ph = p.fontSize + 10, pw = tw + 20;
+      const ph = p.fontSize + 10, pw = tw + 18;
       const px = p.x - pw / 2, py = p.y - ph / 2;
+
       ctx.beginPath();
       ctx.roundRect(px, py, pw, ph, ph / 2);
       ctx.fillStyle = C.pill;
       ctx.fill();
       ctx.strokeStyle = C.border;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 0.8;
       ctx.stroke();
+
       ctx.fillStyle = C.text;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -1405,8 +1411,7 @@ function initHeroCanvas() {
     });
   }
 
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvas);
+  window.addEventListener('resize', resize);
   resize();
   (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
 }

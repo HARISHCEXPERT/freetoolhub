@@ -462,19 +462,21 @@ pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:10
   z-index: 1;
 }
 
-/* ── Hero Canvas — floating pills ── */
+/* ── Hero Canvas — floating pills, full width ── */
 .home-hero {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* allow canvas to escape max-width */
 }
 
 #hero-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  position: fixed; /* fixed so it covers full width regardless of max-width */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
+  /* only show in hero viewport — fade out when scrolled */
 }
 
 .hero-content {
