@@ -1258,7 +1258,15 @@ function buildTool(id) {
 document.addEventListener('input', e => {
   if (e.target.id === 'home-search') {
     const q = e.target.value.trim();
-    if (!IN_TOOLS) { if (q) renderSearch(q); else { buildHome(); initHeroCanvas(); } }
+    if (!IN_TOOLS) {
+      if (q.length >= 1) {
+        renderSearch(q);
+      } else {
+        buildHome();
+        initHeroCanvas();
+        initTypewriter();
+      }
+    }
   }
 });
 document.addEventListener('keydown', e => {
