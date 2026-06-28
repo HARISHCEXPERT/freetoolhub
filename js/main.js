@@ -1234,13 +1234,13 @@ function buildHome() {
 
 function renderSearch(q) {
   const items = TOOLS.filter(t => (t.name + t.desc + t.cat).toLowerCase().includes(q.toLowerCase()));
-  $('#crumb').innerHTML = `<b>Search</b> · ${items.length} result${items.length === 1 ? '' : 's'} for “${esc(q)}”`;
+  // crumb removed
   view.innerHTML = items.length ? cardGrid(items) : `<div class="empty-note">Nothing found for “${esc(q)}”.</div>`;
 }
 
 function buildTool(id) {
   const tool = byId(id);
-  if (!tool) { $('#crumb').innerHTML = '<b>Not found</b>'; view.innerHTML = `<div class="empty-note">Tool “${esc(id)}” not found. <a href="${homeHref()}">Go home</a>.</div>`; return; }
+  if (!tool) { view.innerHTML = `<div class="home-cat-grid"><div class="empty-note">Tool not found. <a href="${homeHref()}">Go home</a>.</div></div>`; return; }
   const cat = CATS.find(c => c.id === tool.cat);
   document.title = tool.name + ' — Free Online Tool | FreeToolHub';
   view.innerHTML = `<div class="tool-view-wrap"><div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div></div>`;
