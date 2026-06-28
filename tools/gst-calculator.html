@@ -23,6 +23,8 @@
   .slab-btn { padding: 10px 4px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); background: white; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s; color: var(--navy); }
   .slab-btn.active { border-color: var(--indigo); background: var(--indigo-light); color: var(--indigo); }
 </style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "GST Calculator India", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "description": "Free online GST calculator for India. Add or remove GST from any amount. Supports all GST slabs — 5%, 12%, 18%, 28%. No signup required.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is GST?", "acceptedAnswer": {"@type": "Answer", "text": "GST (Goods and Services Tax) is a unified indirect tax in India that replaced multiple taxes. It has four main slabs: 5%, 12%, 18%, and 28%."}}, {"@type": "Question", "name": "How to calculate GST?", "acceptedAnswer": {"@type": "Answer", "text": "To add GST: Amount × (1 + GST rate/100). To remove GST from inclusive price: Amount / (1 + GST rate/100). Our calculator does this automatically."}}, {"@type": "Question", "name": "Is this GST calculator free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, completely free. No signup, no login, no limits. Works in your browser with no data sent to any server."}}, {"@type": "Question", "name": "What GST rate applies to services?", "acceptedAnswer": {"@type": "Answer", "text": "Most services in India attract 18% GST. Some essential services are exempt or taxed at 5%. Professional services like IT, consulting typically fall under 18%."}}, {"@type": "Question", "name": "What is CGST and SGST?", "acceptedAnswer": {"@type": "Answer", "text": "CGST (Central GST) and SGST (State GST) are both halves of the GST rate for intra-state transactions. For an 18% GST transaction, CGST = 9% and SGST = 9%."}}]}</script>
 </head>
 <body>
 
@@ -157,5 +159,33 @@ function calculate() {
   document.getElementById('result-box').style.display = 'block';
 }
 </script>
+  <!-- Static SEO content for crawlers -->
+  <section id="tool-seo" class="seo-wrap" hidden>
+    <div class="seo-block">
+      <h2>About GST Calculator India</h2>
+      <p>The <strong>GST Calculator India</strong> is a free online tool that helps you free online gst calculator for india. add or remove gst from any amount. supports all gst slabs — 5%, 12%, 18%, 28%. no signup required. Everything runs locally in your browser — fast, private, and no data is ever sent to any server.</p>
+      <p>Whether you are a professional, student, or everyday user, GST Calculator India gives you instant results with no installation, no account, and no limits.</p>
+    </div>
+    <div class="seo-block">
+      <h2>How to use GST Calculator India</h2>
+      <ol>
+        <li>Enter your details or upload your file in the tool above.</li>
+        <li>Click the action button to process your input.</li>
+        <li>Copy, download, or use the result directly.</li>
+      </ol>
+    </div>
+    <div class="seo-block faq">
+      <h2>Frequently asked questions</h2>
+        <details><summary>What is GST?</summary><p>GST (Goods and Services Tax) is a unified indirect tax in India that replaced multiple taxes. It has four main slabs: 5%, 12%, 18%, and 28%.</p></details>
+        <details><summary>How to calculate GST?</summary><p>To add GST: Amount × (1 + GST rate/100). To remove GST from inclusive price: Amount / (1 + GST rate/100). Our calculator does this automatically.</p></details>
+        <details><summary>Is this GST calculator free?</summary><p>Yes, completely free. No signup, no login, no limits. Works in your browser with no data sent to any server.</p></details>
+        <details><summary>What GST rate applies to services?</summary><p>Most services in India attract 18% GST. Some essential services are exempt or taxed at 5%. Professional services like IT, consulting typically fall under 18%.</p></details>
+        <details><summary>What is CGST and SGST?</summary><p>CGST (Central GST) and SGST (State GST) are both halves of the GST rate for intra-state transactions. For an 18% GST transaction, CGST = 9% and SGST = 9%.</p></details>
+    </div>
+    <div class="seo-block">
+      <h2>Related keywords</h2>
+      <div class="seo-keywords"><span class="chip">gst calculator</span><span class="chip">gst calculator india</span><span class="chip">gst calculator online</span><span class="chip">calculate gst</span><span class="chip">18% gst calculator</span><span class="chip">gst inclusive exclusive</span></div>
+    </div>
+  </section>
 </body>
 </html>

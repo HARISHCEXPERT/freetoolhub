@@ -1,0 +1,41 @@
+# FreeToolHub
+> 81+ free browser-based online tools for developers, students, and professionals. No login, no data collection, works offline.
+
+FreeToolHub (https://freetoolhub.app) is a free tool website with 81+ utilities that run entirely in the browser using JavaScript. No signup, no login, no server — all processing happens locally on the user's device.
+
+## Key Facts
+- 81+ free tools
+- Zero login or signup required
+- All tools run 100% in the browser
+- No data is ever uploaded to any server
+- Works offline after first load
+- Free forever
+
+## Tool Categories
+
+### Developer Tools (19 tools)
+JSON Formatter, JSON Validator, JSON Minifier, JSON to CSV, JSON to XML, JSON Diff, XML Formatter, YAML to JSON, SQL Formatter, Base64 Encode/Decode, URL Encode/Decode, UUID Generator, Regex Tester, JWT Decoder, Hash Generator, Unix Timestamp Converter, Color Converter, HTML Escape/Unescape, Markdown Preview
+
+### Text Tools (18 tools)
+Word Counter, Character Counter, Case Converter, Remove Duplicate Lines, Sort Lines, Reverse Text, Find & Replace, Remove Blank Lines, Text Cleaner, CSV to JSON, JSON to CSV, Word Frequency, Reading Time, Text Splitter, Remove Emojis, Email Extractor, URL Extractor, Phone Extractor
+
+### Everyday Tools (10 tools)
+Password Generator, Lorem Ipsum, Random Number, Age Calculator, Percentage Calculator, Unit Converter, Date Calculator, Stopwatch, Countdown Timer, Pomodoro Timer
+
+### Finance Tools (13 tools)
+EMI Calculator, SIP Calculator, FD Calculator, RD Calculator, Compound Interest, Simple Interest, GST Calculator, Discount Calculator, ROI Calculator, CAGR Calculator, Break-even Calculator, Margin Calculator, Salary Converter
+
+### Student Tools (5 tools)
+CGPA Calculator, GPA Calculator, CGPA to Percentage, Attendance Calculator, Marks/Grade Calculator
+
+### SEO & Web Tools (10 tools)
+Meta Tag Generator, Open Graph Generator, Twitter Card Generator, Robots.txt Generator, Slug Generator, UTM Builder, Keyword Density, FAQ Schema, Article Schema, Product Schema
+
+### Image Tools (6 tools)
+Image Resizer, Image Compressor, Image Format Converter, Rotate & Flip, Grayscale & Filters, Image to Base64
+
+## Links
+- Homepage: https://freetoolhub.app
+- About: https://freetoolhub.app/about.html
+- Privacy Policy: https://freetoolhub.app/privacy.html
+- Dev.to Article: https://dev.to/harishcexpert/i-built-81-free-browser-based-tools-in-vanilla-js-no-login-no-server-no-bs-563m

@@ -20,6 +20,8 @@
 .opt-row:last-child { border-bottom: none; }
 select { margin-bottom: 0 !important; }
 </style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Image to PDF Converter", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "description": "Free online image to PDF converter. Convert JPG, PNG images to PDF instantly. Works in browser, no upload required. No signup.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is the image to PDF converter free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, completely free with no signup and no limits on the number of conversions."}}, {"@type": "Question", "name": "Is my image uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. The conversion happens entirely in your browser. Your images are never uploaded to any server."}}, {"@type": "Question", "name": "What image formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "JPG, JPEG, PNG, and WebP images can be converted to PDF."}}, {"@type": "Question", "name": "Can I convert multiple images to one PDF?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. You can add multiple images and they will be combined into a single PDF file."}}, {"@type": "Question", "name": "What is the maximum image size?", "acceptedAnswer": {"@type": "Answer", "text": "There is no strict limit — it depends on your device's memory. For best results, keep individual images under 10MB."}}]}</script>
 </head>
 <body>
 <nav>
@@ -183,5 +185,33 @@ zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add(
 zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
 zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
 </script>
+  <!-- Static SEO content for crawlers -->
+  <section id="tool-seo" class="seo-wrap" hidden>
+    <div class="seo-block">
+      <h2>About Image to PDF Converter</h2>
+      <p>The <strong>Image to PDF Converter</strong> is a free online tool that helps you free online image to pdf converter. convert jpg, png images to pdf instantly. works in browser, no upload required. no signup. Everything runs locally in your browser — fast, private, and no data is ever sent to any server.</p>
+      <p>Whether you are a professional, student, or everyday user, Image to PDF Converter gives you instant results with no installation, no account, and no limits.</p>
+    </div>
+    <div class="seo-block">
+      <h2>How to use Image to PDF Converter</h2>
+      <ol>
+        <li>Enter your details or upload your file in the tool above.</li>
+        <li>Click the action button to process your input.</li>
+        <li>Copy, download, or use the result directly.</li>
+      </ol>
+    </div>
+    <div class="seo-block faq">
+      <h2>Frequently asked questions</h2>
+        <details><summary>Is the image to PDF converter free?</summary><p>Yes, completely free with no signup and no limits on the number of conversions.</p></details>
+        <details><summary>Is my image uploaded to a server?</summary><p>No. The conversion happens entirely in your browser. Your images are never uploaded to any server.</p></details>
+        <details><summary>What image formats are supported?</summary><p>JPG, JPEG, PNG, and WebP images can be converted to PDF.</p></details>
+        <details><summary>Can I convert multiple images to one PDF?</summary><p>Yes. You can add multiple images and they will be combined into a single PDF file.</p></details>
+        <details><summary>What is the maximum image size?</summary><p>There is no strict limit — it depends on your device's memory. For best results, keep individual images under 10MB.</p></details>
+    </div>
+    <div class="seo-block">
+      <h2>Related keywords</h2>
+      <div class="seo-keywords"><span class="chip">image to pdf</span><span class="chip">jpg to pdf</span><span class="chip">png to pdf</span><span class="chip">convert image to pdf online</span><span class="chip">free image to pdf</span></div>
+    </div>
+  </section>
 </body>
 </html>

@@ -1,4 +1,23 @@
 User-agent: *
 Allow: /
 
+# AI Crawlers — welcome to index FreeToolHub
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+# LLMs.txt — AI-readable site summary
+# https://freetoolhub.app/llms.txt
+
 Sitemap: https://freetoolhub.app/sitemap.xml

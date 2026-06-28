@@ -20,6 +20,8 @@
 .file-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
 .file-row:last-child { border-bottom: none; }
 </style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Image Compressor", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "description": "Free online image compressor. Reduce JPG, PNG, and WebP file sizes without losing quality. Works entirely in your browser — no upload to server.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is the image compressor free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, 100% free. Compress unlimited images with no watermarks or signup required."}}, {"@type": "Question", "name": "Is my image uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. All compression happens locally in your browser using the Canvas API. Your images never leave your device."}}, {"@type": "Question", "name": "What image formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "JPG/JPEG, PNG, and WebP formats are supported for compression."}}, {"@type": "Question", "name": "How much can I compress an image?", "acceptedAnswer": {"@type": "Answer", "text": "Typically 40-80% file size reduction is achievable while maintaining good visual quality. Results vary by image content."}}, {"@type": "Question", "name": "Will compression reduce image quality?", "acceptedAnswer": {"@type": "Answer", "text": "Some quality reduction is expected with compression. Use the quality slider to find the right balance between file size and visual quality for your needs."}}]}</script>
 </head>
 <body>
 <nav>
@@ -163,5 +165,33 @@ zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add(
 zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
 zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
 </script>
+  <!-- Static SEO content for crawlers -->
+  <section id="tool-seo" class="seo-wrap" hidden>
+    <div class="seo-block">
+      <h2>About Image Compressor</h2>
+      <p>The <strong>Image Compressor</strong> is a free online tool that helps you free online image compressor. reduce jpg, png, and webp file sizes without losing quality. works entirely in your browser — no upload to server. Everything runs locally in your browser — fast, private, and no data is ever sent to any server.</p>
+      <p>Whether you are a professional, student, or everyday user, Image Compressor gives you instant results with no installation, no account, and no limits.</p>
+    </div>
+    <div class="seo-block">
+      <h2>How to use Image Compressor</h2>
+      <ol>
+        <li>Enter your details or upload your file in the tool above.</li>
+        <li>Click the action button to process your input.</li>
+        <li>Copy, download, or use the result directly.</li>
+      </ol>
+    </div>
+    <div class="seo-block faq">
+      <h2>Frequently asked questions</h2>
+        <details><summary>Is the image compressor free?</summary><p>Yes, 100% free. Compress unlimited images with no watermarks or signup required.</p></details>
+        <details><summary>Is my image uploaded to a server?</summary><p>No. All compression happens locally in your browser using the Canvas API. Your images never leave your device.</p></details>
+        <details><summary>What image formats are supported?</summary><p>JPG/JPEG, PNG, and WebP formats are supported for compression.</p></details>
+        <details><summary>How much can I compress an image?</summary><p>Typically 40-80% file size reduction is achievable while maintaining good visual quality. Results vary by image content.</p></details>
+        <details><summary>Will compression reduce image quality?</summary><p>Some quality reduction is expected with compression. Use the quality slider to find the right balance between file size and visual quality for your needs.</p></details>
+    </div>
+    <div class="seo-block">
+      <h2>Related keywords</h2>
+      <div class="seo-keywords"><span class="chip">image compressor</span><span class="chip">compress image online</span><span class="chip">reduce image size</span><span class="chip">jpg compressor</span><span class="chip">png compressor</span><span class="chip">webp optimizer</span></div>
+    </div>
+  </section>
 </body>
 </html>
