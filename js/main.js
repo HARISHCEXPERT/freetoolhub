@@ -1255,28 +1255,8 @@ function buildTool(id) {
 }
 
 /* search — home page big search bar */
-document.addEventListener('input', e => {
-  if (e.target.id === 'home-search') {
-    const q = e.target.value.trim();
-    if (!IN_TOOLS) {
-      if (q.length >= 1) {
-        renderSearch(q);
-      } else {
-        // Show all cards and sections
-        document.querySelectorAll('.tool-card').forEach(c => c.style.display = '');
-        document.querySelectorAll('.home-cat').forEach(s => s.style.display = '');
-        const countEl = document.getElementById('search-count');
-        if (countEl) countEl.textContent = '';
-      }
-    }
-  }
-});
-document.addEventListener('keydown', e => {
-  const hs = document.getElementById('home-search');
-  if (e.key === '/' && hs && document.activeElement !== hs && !/input|textarea/i.test(document.activeElement.tagName)) {
-    e.preventDefault(); hs.focus();
-  }
-});
+/* search handled in boot */
+/* keydown handled in boot */
 
 /* theme */
 const themeBtn = $('#theme-toggle');
