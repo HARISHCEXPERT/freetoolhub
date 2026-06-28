@@ -1181,7 +1181,7 @@ function buildHome() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
           <input id="home-search" type="search" placeholder="Search 81 tools..." autocomplete="off" spellcheck="false">
-          <span class="home-search-kbd">⌘K</span>
+          <span class="home-search-kbd">⌘K</span><span id="search-count" style="position:absolute;right:60px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);font-weight:600;"></span>
         </div>
         <div class="hero-stats">
           <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
@@ -1262,9 +1262,11 @@ document.addEventListener('input', e => {
       if (q.length >= 1) {
         renderSearch(q);
       } else {
-        buildHome();
-        initHeroCanvas();
-        initTypewriter();
+        // Show all cards and sections
+        document.querySelectorAll('.tool-card').forEach(c => c.style.display = '');
+        document.querySelectorAll('.home-cat').forEach(s => s.style.display = '');
+        const countEl = document.getElementById('search-count');
+        if (countEl) countEl.textContent = '';
       }
     }
   }
