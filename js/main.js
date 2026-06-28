@@ -1179,14 +1179,17 @@ function buildHome() {
   document.title = 'FreeToolHub — 81 Free Online Tools. No Login.';
   view.innerHTML = `
     <div class="home-hero anim-fade">
-      <div class="hero-badge"><span class="hero-dot"></span> 100% Free &nbsp;·&nbsp; No Login &nbsp;·&nbsp; Works Offline</div>
-      <h1>Every tool you need,<br><span class="hl">always free.</span></h1>
-      <p>A fast, private collection of <strong>${TOOLS.length} tools</strong> — developer, text, finance, SEO &amp; image. Nothing is uploaded. Everything runs locally in your browser.</p>
-      <div class="hero-stats">
-        <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
-        <div class="hstat"><span class="hstat-n">0</span><span class="hstat-l">Login Required</span></div>
-        <div class="hstat"><span class="hstat-n">100%</span><span class="hstat-l">Browser-Based</span></div>
-        <div class="hstat"><span class="hstat-n">0₹</span><span class="hstat-l">Forever Free</span></div>
+      <canvas id="hero-canvas"></canvas>
+      <div class="hero-content">
+        <div class="hero-badge"><span class="hero-dot"></span> 100% Free &nbsp;·&nbsp; No Login &nbsp;·&nbsp; Works Offline</div>
+        <h1>Every tool you need,<br><span class="hl">always free.</span></h1>
+        <p>A fast, private collection of <strong>${TOOLS.length} tools</strong> — developer, text, finance, SEO &amp; image. Nothing is uploaded. Everything runs locally in your browser.</p>
+        <div class="hero-stats">
+          <div class="hstat"><span class="hstat-n">${TOOLS.length}+</span><span class="hstat-l">Free Tools</span></div>
+          <div class="hstat"><span class="hstat-n">0</span><span class="hstat-l">Login Required</span></div>
+          <div class="hstat"><span class="hstat-n">100%</span><span class="hstat-l">Browser-Based</span></div>
+          <div class="hstat"><span class="hstat-n">0₹</span><span class="hstat-l">Forever Free</span></div>
+        </div>
       </div>
     </div>
     ${CATS.map((c, ci) => {
@@ -1247,7 +1250,7 @@ const search = $('#search');
 search.addEventListener('input', () => {
   const q = search.value.trim();
   renderNav(q);
-  if (!IN_TOOLS) { if (q) renderSearch(q); else buildHome(); }
+  if (!IN_TOOLS) { if (q) renderSearch(q); else { buildHome(); initHeroCanvas(); } }
 });
 document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement !== search && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); } });
 
@@ -1268,4 +1271,111 @@ $('#tool-count').textContent = TOOLS.length;
 
 /* boot */
 renderNav();
-if (IN_TOOLS) buildTool(CURRENT); else buildHome();
+if (IN_TOOLS) buildTool(CURRENT); else { buildHome(); initHeroCanvas(); }
+
+/* ── Hero Canvas: Floating Tool Pills + Dot Grid Pulse ── */
+function initHeroCanvas() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, pills = [], dots = [], mouse = { x: -999, y: -999 };
+  const ACCENT = '#ec5a13';
+  const ACCENT_A = 'rgba(236,90,19,';
+  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 28);
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    buildDots();
+    buildPills();
+  }
+
+  function buildDots() {
+    dots = [];
+    const gap = 36;
+    for (let x = gap; x < W; x += gap) {
+      for (let y = gap; y < H; y += gap) {
+        dots.push({ x, y, base: 0.13, r: 2.2 });
+      }
+    }
+  }
+
+  function buildPills() {
+    pills = tool_names.map((name, i) => ({
+      name,
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.38,
+      vy: (Math.random() - 0.5) * 0.28,
+      alpha: 0.12 + Math.random() * 0.13,
+      fontSize: 11 + Math.floor(Math.random() * 4),
+      phase: Math.random() * Math.PI * 2,
+    }));
+  }
+
+  function drawDots(t) {
+    dots.forEach(d => {
+      const dx = d.x - mouse.x, dy = d.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const glow = dist < 90 ? (1 - dist / 90) * 0.75 : 0;
+      const pulse = d.base + Math.sin(t * 0.001 + d.x * 0.05 + d.y * 0.04) * 0.04;
+      const alpha = pulse + glow;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, glow > 0 ? d.r + glow * 2.5 : d.r, 0, Math.PI * 2);
+      ctx.fillStyle = ACCENT_A + alpha.toFixed(2) + ')';
+      ctx.fill();
+    });
+  }
+
+  function drawPills(t) {
+    pills.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -120) p.x = W + 60;
+      if (p.x > W + 120) p.x = -60;
+      if (p.y < -40) p.y = H + 20;
+      if (p.y > H + 40) p.y = -20;
+      const breathe = p.alpha + Math.sin(t * 0.0008 + p.phase) * 0.04;
+      ctx.save();
+      ctx.globalAlpha = breathe;
+      ctx.font = `500 ${p.fontSize}px "Space Grotesk", system-ui, sans-serif`;
+      const tw = ctx.measureText(p.name).width;
+      const ph = p.fontSize + 10, pw = tw + 22, rx = 100;
+      const x = p.x - pw / 2, y = p.y - ph / 2;
+      // pill bg
+      ctx.beginPath();
+      ctx.roundRect(x, y, pw, ph, ph / 2);
+      ctx.fillStyle = ACCENT_A + '0.07)';
+      ctx.fill();
+      ctx.strokeStyle = ACCENT_A + '0.22)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // text
+      ctx.fillStyle = ACCENT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.name, p.x, p.y);
+      ctx.restore();
+    });
+  }
+
+  let raf;
+  function loop(t) {
+    ctx.clearRect(0, 0, W, H);
+    drawDots(t);
+    drawPills(t);
+    raf = requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+  });
+  canvas.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
+
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+  raf = requestAnimationFrame(loop);
+}
