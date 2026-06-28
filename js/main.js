@@ -1271,30 +1271,93 @@ $('#tool-count').textContent = TOOLS.length;
 
 /* boot */
 renderNav();
+initDotGrid();
 if (IN_TOOLS) buildTool(CURRENT); else { buildHome(); initHeroCanvas(); }
 
-/* ── Hero Canvas: Subtle Floating Pills + Dot Grid ── */
-function initHeroCanvas() {
-  const canvas = document.getElementById('hero-canvas');
-  if (!canvas) return;
+/* ── Global Dot Grid — full page, theme-aware ── */
+function initDotGrid() {
+  // Create a fixed canvas behind everything
+  const canvas = document.createElement('canvas');
+  canvas.id = 'dot-grid-canvas';
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  document.body.prepend(canvas);
+
   const ctx = canvas.getContext('2d');
-  let W, H, pills = [], dots = [], mouse = { x: -999, y: -999 };
-  const ACCENT_A = 'rgba(236,90,19,';
-  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 22);
+  let W, H, dots = [], mouse = { x: -999, y: -999 };
+
+  function isDark() {
+    return document.documentElement.dataset.theme === 'dark';
+  }
+
+  function dotColor(alpha) {
+    return isDark()
+      ? `rgba(236,90,19,${alpha})`
+      : `rgba(180,60,0,${alpha})`;
+  }
 
   function resize() {
-    W = canvas.width = canvas.offsetWidth;
-    H = canvas.height = canvas.offsetHeight;
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
     buildDots();
-    buildPills();
   }
 
   function buildDots() {
     dots = [];
-    const gap = 40;
-    for (let x = gap; x < W; x += gap)
-      for (let y = gap; y < H; y += gap)
-        dots.push({ x, y, r: 1.5, phase: Math.random() * Math.PI * 2 });
+    const gap = 38;
+    for (let x = gap / 2; x < W; x += gap)
+      for (let y = gap / 2; y < H; y += gap)
+        dots.push({ x, y, r: 1.4, phase: Math.random() * Math.PI * 2 });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    dots.forEach(d => {
+      const dx = d.x - mouse.x;
+      const dy = d.y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const glow = dist < 100 ? (1 - dist / 100) * 0.7 : 0;
+      const pulse = 0.07 + Math.sin(t * 0.0006 + d.phase) * 0.025;
+      const alpha = Math.min(0.9, pulse + glow);
+      const r = glow > 0.05 ? d.r + glow * 3 : d.r;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor(alpha.toFixed(3));
+      ctx.fill();
+    });
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
+
+  // Watch theme changes
+  const observer = new MutationObserver(() => {});
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  resize();
+  (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
+}
+
+/* ── Hero Pills — floating tool names in hero only ── */
+function initHeroCanvas() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, pills = [];
+  const tool_names = TOOLS.map(t => t.name).sort(() => Math.random() - 0.5).slice(0, 24);
+
+  function isDark() { return document.documentElement.dataset.theme === 'dark'; }
+
+  function getColors() {
+    return isDark()
+      ? { pill: 'rgba(255,255,255,0.06)', border: 'rgba(236,90,19,0.3)', text: 'rgba(255,150,90,0.9)' }
+      : { pill: 'rgba(236,90,19,0.07)', border: 'rgba(180,60,0,0.25)', text: 'rgba(160,50,0,0.85)' };
+  }
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    if (!pills.length) buildPills();
   }
 
   function buildPills() {
@@ -1302,28 +1365,16 @@ function initHeroCanvas() {
       name,
       x: Math.random() * W,
       y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.22,
+      vx: (Math.random() - 0.5) * 0.28,
       vy: (Math.random() - 0.5) * 0.18,
-      alpha: 0.04 + Math.random() * 0.05,
-      fontSize: 10 + Math.floor(Math.random() * 3),
+      fontSize: 11 + Math.floor(Math.random() * 3),
       phase: Math.random() * Math.PI * 2,
     }));
   }
 
-  function drawDots(t) {
-    dots.forEach(d => {
-      const dx = d.x - mouse.x, dy = d.y - mouse.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const glow = dist < 80 ? (1 - dist / 80) * 0.6 : 0;
-      const base = 0.06 + Math.sin(t * 0.0007 + d.phase) * 0.02;
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, glow > 0.1 ? d.r + glow * 2 : d.r, 0, Math.PI * 2);
-      ctx.fillStyle = ACCENT_A + (base + glow).toFixed(2) + ')';
-      ctx.fill();
-    });
-  }
-
-  function drawPills(t) {
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const C = getColors();
     pills.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
@@ -1331,21 +1382,22 @@ function initHeroCanvas() {
       if (p.x > W + 140) p.x = -70;
       if (p.y < -30) p.y = H + 15;
       if (p.y > H + 30) p.y = -15;
-      const alpha = p.alpha + Math.sin(t * 0.0006 + p.phase) * 0.02;
+
+      const alpha = 0.7 + Math.sin(t * 0.0007 + p.phase) * 0.3;
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.font = `500 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
+      ctx.font = `600 ${p.fontSize}px "Space Grotesk",system-ui,sans-serif`;
       const tw = ctx.measureText(p.name).width;
-      const ph = p.fontSize + 8, pw = tw + 18;
-      const x = p.x - pw / 2, y = p.y - ph / 2;
+      const ph = p.fontSize + 10, pw = tw + 20;
+      const px = p.x - pw / 2, py = p.y - ph / 2;
       ctx.beginPath();
-      ctx.roundRect(x, y, pw, ph, ph / 2);
-      ctx.fillStyle = ACCENT_A + '0.05)';
+      ctx.roundRect(px, py, pw, ph, ph / 2);
+      ctx.fillStyle = C.pill;
       ctx.fill();
-      ctx.strokeStyle = ACCENT_A + '0.15)';
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = C.border;
+      ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = 'rgba(236,90,19,0.6)';
+      ctx.fillStyle = C.text;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(p.name, p.x, p.y);
@@ -1353,23 +1405,8 @@ function initHeroCanvas() {
     });
   }
 
-  let raf;
-  function loop(t) {
-    ctx.clearRect(0, 0, W, H);
-    drawDots(t);
-    drawPills(t);
-    raf = requestAnimationFrame(loop);
-  }
-
-  canvas.addEventListener('mousemove', e => {
-    const r = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - r.left;
-    mouse.y = e.clientY - r.top;
-  });
-  canvas.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
-
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
   resize();
-  raf = requestAnimationFrame(loop);
+  (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
 }

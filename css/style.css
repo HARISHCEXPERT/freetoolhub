@@ -446,11 +446,26 @@ pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:10
   .topbar-divider { display: none; }
 }
 
-/* ── Hero Canvas Animation ── */
+/* ── Global Dot Grid Canvas ── */
+#dot-grid-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Everything above dot grid */
+#sidebar, #main, #topbar {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero Canvas — floating pills ── */
 .home-hero {
   position: relative;
   overflow: hidden;
-  isolation: isolate;
 }
 
 #hero-canvas {
@@ -458,31 +473,11 @@ pre.code{background:var(--code-bg);border:1px solid var(--line);border-radius:10
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: auto;
-  z-index: 0;
-  opacity: 0.85;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  pointer-events: none;
-}
-
-/* Make interactive elements inside hero-content clickable */
-.hero-content a,
-.hero-content button,
-.hero-content input,
-.hero-content .hstat {
-  pointer-events: auto;
-}
-
-/* Radial vignette — center content stays readable */
-.home-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 80% at 30% 50%, rgba(14,14,17,0.55) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 1;
 }
