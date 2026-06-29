@@ -1238,6 +1238,22 @@ function renderSearch(q) {
   view.innerHTML = items.length ? cardGrid(items) : `<div class="empty-note">Nothing found for “${esc(q)}”.</div>`;
 }
 
+function attachSearchListener() {
+  const searchInput = document.getElementById('home-search');
+  if (!searchInput || searchInput._searchBound) return;
+  searchInput._searchBound = true;
+  searchInput.addEventListener('input', e => {
+    const q = e.target.value.trim();
+    if (q) {
+      renderSearch(q);
+    } else {
+      buildHome();
+      attachSearchListener();
+    }
+  });
+  initTypewriter();
+}
+
 function buildTool(id) {
   const tool = byId(id);
   if (!tool) { view.innerHTML = `<div class="home-cat-grid"><div class="empty-note">Tool not found. <a href="${homeHref()}">Go home</a>.</div></div>`; return; }
@@ -1275,7 +1291,34 @@ $('#random-tool').onclick = () => { location.href = toolHref(TOOLS[Math.floor(Ma
 /* boot */
 renderNav();
 initDotGrid();
-if (IN_TOOLS) buildTool(CURRENT); else { buildHome(); initHeroCanvas(); }
+if (IN_TOOLS) {
+  buildTool(CURRENT);
+} else {
+  buildHome();
+  initHeroCanvas();
+  restoreScroll();
+
+  /* attach search listener after DOM is ready — setTimeout ensures #home-search exists */
+  setTimeout(() => attachSearchListener(), 100);
+
+  /* Cmd/Ctrl+K → focus search */
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      const s = document.getElementById('home-search');
+      if (s) s.focus();
+    }
+    if (e.key === 'Escape') {
+      const s = document.getElementById('home-search');
+      if (s && document.activeElement === s) {
+        s.value = '';
+        buildHome();
+        setTimeout(() => attachSearchListener(), 100);
+        s.blur();
+      }
+    }
+  });
+}
 
 /* ── Global Dot Grid — full page, theme-aware ── */
 function initDotGrid() {
