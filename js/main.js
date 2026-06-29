@@ -340,6 +340,7 @@ const CATS = [
   { id: 'student',  name: 'Student',    ic: '✎' },
   { id: 'seo',      name: 'SEO & Web',  ic: '⌁' },
   { id: 'image',    name: 'Image',      ic: '▣' },
+  { id: 'pdf',      name: 'PDF',        ic: '⎙' },
 ];
 
 const TOOLS = [];
@@ -1087,6 +1088,492 @@ T('image', 'image-base64', 'Image → Base64', 'Encode an image as a data URI.',
   afterBlob: (root, blob, canvas) => { const url = canvas.toDataURL('image/png'); $('#extra', root).innerHTML = `<div style="margin-top:16px">${outBlock(url, 'b64out', 'image-base64.txt', false)}</div>`; },
   name: () => 'image.png',
 }));
+
+
+/* ---------------- PDF ---------------- */
+/* pdf-lib loaded per-tool via CDN; we just register the T() entries here */
+
+T('pdf', 'pdf-merge', 'PDF Merger', 'Combine multiple PDFs into one file.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="pdf-dz">⬆ Click or drop PDF files here<br><span class="subtle">Multiple files supported · Never leaves your browser</span></div>
+    <input type="file" id="pdf-fi" accept="application/pdf" multiple hidden>
+    <div id="pdf-list" style="margin-top:14px;display:flex;flex-direction:column;gap:8px"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" id="pdf-go">Merge PDFs</button>
+      <button class="btn ghost" id="pdf-clear">Clear all</button>
+    </div>
+    <div class="status muted" id="pdf-st"></div>
+  </div>`;
+
+  let files = [];
+  const dz = $('#pdf-dz', root), fi = $('#pdf-fi', root), list = $('#pdf-list', root), st = $('#pdf-st', root);
+
+  const renderList = () => {
+    list.innerHTML = files.map((f, i) => `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px">
+        <span style="font-size:18px">📄</span>
+        <span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>
+        <span class="subtle" style="font-size:12px">${(f.size/1024).toFixed(0)} KB</span>
+        <button class="btn sm ghost" data-rm="${i}">✕</button>
+      </div>`).join('');
+    list.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { files.splice(+b.dataset.rm, 1); renderList(); });
+  };
+
+  const addFiles = newFiles => { files.push(...[...newFiles].filter(f => f.type === 'application/pdf')); renderList(); };
+  dz.onclick = () => fi.click();
+  fi.onchange = e => addFiles(e.target.files);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); addFiles(e.dataTransfer.files); };
+  $('#pdf-clear', root).onclick = () => { files = []; renderList(); st.textContent = ''; };
+
+  $('#pdf-go', root).onclick = async () => {
+    if (files.length < 2) { st.className = 'status err'; st.textContent = '✕ Add at least 2 PDF files'; return; }
+    st.className = 'status muted'; st.textContent = 'Merging…';
+    try {
+      const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const merged = await PDFDocument.create();
+      for (const file of files) {
+        const buf = await file.arrayBuffer();
+        const doc = await PDFDocument.load(buf);
+        const pages = await merged.copyPages(doc, doc.getPageIndices());
+        pages.forEach(p => merged.addPage(p));
+      }
+      const bytes = await merged.save();
+      download(new Blob([bytes], { type: 'application/pdf' }), 'merged.pdf');
+      st.className = 'status ok'; st.textContent = `✓ Merged ${files.length} files`;
+    } catch (e) { st.className = 'status err'; st.textContent = '✕ ' + e.message; }
+  };
+});
+
+T('pdf', 'pdf-split', 'PDF Splitter', 'Extract specific pages from a PDF.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="sp-dz">⬆ Click or drop a PDF file here<br><span class="subtle">Never leaves your browser</span></div>
+    <input type="file" id="sp-fi" accept="application/pdf" hidden>
+    <div id="sp-info" style="margin-top:14px"></div>
+    <div id="sp-controls" style="display:none;margin-top:14px">
+      <div class="field-row">
+        <div class="field"><label>Pages to extract <span class="hint">e.g. 1,3,5-8,10</span></label>
+          <input class="fld" id="sp-pages" placeholder="1-3,5,7-9"></div>
+        <div class="field"><label>Or split every N pages</label>
+          <input class="fld" type="number" id="sp-n" min="1" placeholder="e.g. 2"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="sp-go">Extract / Split</button></div>
+      <div class="status muted" id="sp-st"></div>
+    </div>
+  </div>`;
+
+  let pdfFile = null, totalPages = 0;
+  const dz = $('#sp-dz', root), fi = $('#sp-fi', root);
+
+  const loadFile = async file => {
+    if (file.type !== 'application/pdf') { toast('Please choose a PDF'); return; }
+    pdfFile = file;
+    try {
+      const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.load(await file.arrayBuffer());
+      totalPages = doc.getPageCount();
+      $('#sp-info', root).innerHTML = `<div class="note-box">📄 ${esc(file.name)} · <b>${totalPages} pages</b> · ${(file.size/1024).toFixed(0)} KB</div>`;
+      $('#sp-controls', root).style.display = '';
+    } catch(e) { toast('Could not read PDF: ' + e.message); }
+  };
+
+  dz.onclick = () => fi.click();
+  fi.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
+
+  $('#sp-go', root).onclick = async () => {
+    const st = $('#sp-st', root);
+    const pageStr = $('#sp-pages', root).value.trim();
+    const nStr = $('#sp-n', root).value.trim();
+    if (!pageStr && !nStr) { st.className = 'status err'; st.textContent = '✕ Enter pages or split size'; return; }
+    st.className = 'status muted'; st.textContent = 'Processing…';
+    try {
+      const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const srcDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
+
+      if (pageStr) {
+        const indices = [];
+        pageStr.split(',').forEach(part => {
+          part = part.trim();
+          if (part.includes('-')) { const [a,b] = part.split('-').map(Number); for(let i=a;i<=b;i++) if(i>=1&&i<=totalPages) indices.push(i-1); }
+          else { const n = parseInt(part); if(n>=1&&n<=totalPages) indices.push(n-1); }
+        });
+        if (!indices.length) { st.className='status err'; st.textContent='✕ No valid pages'; return; }
+        const newDoc = await PDFDocument.create();
+        const pages = await newDoc.copyPages(srcDoc, indices);
+        pages.forEach(p => newDoc.addPage(p));
+        const bytes = await newDoc.save();
+        download(new Blob([bytes],{type:'application/pdf'}), 'extracted.pdf');
+        st.className='status ok'; st.textContent=`✓ Extracted ${indices.length} pages`;
+      } else {
+        const n = parseInt(nStr);
+        let chunk = 0;
+        for (let start = 0; start < totalPages; start += n) {
+          chunk++;
+          const indices = Array.from({length: Math.min(n, totalPages-start)}, (_,i) => start+i);
+          const newDoc = await PDFDocument.create();
+          const pages = await newDoc.copyPages(srcDoc, indices);
+          pages.forEach(p => newDoc.addPage(p));
+          const bytes = await newDoc.save();
+          download(new Blob([bytes],{type:'application/pdf'}), `split-part${chunk}.pdf`);
+        }
+        st.className='status ok'; st.textContent=`✓ Created ${chunk} files`;
+      }
+    } catch(e) { st.className='status err'; st.textContent='✕ '+e.message; }
+  };
+});
+
+T('pdf', 'pdf-rotate', 'PDF Page Rotator', 'Rotate all or specific pages in a PDF.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="rot-dz">⬆ Click or drop a PDF here</div>
+    <input type="file" id="rot-fi" accept="application/pdf" hidden>
+    <div id="rot-info"></div>
+    <div id="rot-ctrl" style="display:none;margin-top:14px">
+      <div class="field-row">
+        <div class="field"><label>Rotate</label>
+          <select class="fld" id="rot-deg">
+            <option value="90">90° clockwise</option>
+            <option value="180">180°</option>
+            <option value="270">90° counter-clockwise</option>
+          </select></div>
+        <div class="field"><label>Pages <span class="hint">blank = all pages</span></label>
+          <input class="fld" id="rot-pages" placeholder="e.g. 1,3,5-8"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="rot-go">Rotate & Download</button></div>
+      <div class="status muted" id="rot-st"></div>
+    </div>
+  </div>`;
+
+  let pdfFile = null, totalPages = 0;
+  const dz = $('#rot-dz', root), fi = $('#rot-fi', root);
+
+  const loadFile = async file => {
+    pdfFile = file;
+    const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+    const doc = await PDFDocument.load(await file.arrayBuffer());
+    totalPages = doc.getPageCount();
+    $('#rot-info', root).innerHTML = `<div class="note-box" style="margin-top:12px">📄 ${esc(file.name)} · <b>${totalPages} pages</b></div>`;
+    $('#rot-ctrl', root).style.display = '';
+  };
+
+  dz.onclick = () => fi.click();
+  fi.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
+
+  $('#rot-go', root).onclick = async () => {
+    const st = $('#rot-st', root);
+    const deg = parseInt($('#rot-deg', root).value);
+    const pageStr = $('#rot-pages', root).value.trim();
+    st.className = 'status muted'; st.textContent = 'Rotating…';
+    try {
+      const { PDFDocument, degrees } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.load(await pdfFile.arrayBuffer());
+      const pages = doc.getPages();
+
+      let indices = [];
+      if (pageStr) {
+        pageStr.split(',').forEach(part => {
+          part = part.trim();
+          if (part.includes('-')) { const [a,b]=part.split('-').map(Number); for(let i=a;i<=b;i++) if(i>=1&&i<=totalPages) indices.push(i-1); }
+          else { const n=parseInt(part); if(n>=1&&n<=totalPages) indices.push(n-1); }
+        });
+      } else {
+        indices = pages.map((_,i) => i);
+      }
+
+      indices.forEach(i => {
+        const page = pages[i];
+        page.setRotation(degrees((page.getRotation().angle + deg) % 360));
+      });
+
+      const bytes = await doc.save();
+      download(new Blob([bytes],{type:'application/pdf'}), 'rotated.pdf');
+      st.className='status ok'; st.textContent=`✓ Rotated ${indices.length} pages`;
+    } catch(e) { st.className='status err'; st.textContent='✕ '+e.message; }
+  };
+});
+
+T('pdf', 'pdf-watermark', 'PDF Watermark', 'Add a text watermark to every page.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="wm-dz">⬆ Click or drop a PDF here</div>
+    <input type="file" id="wm-fi" accept="application/pdf" hidden>
+    <div id="wm-info"></div>
+    <div id="wm-ctrl" style="display:none;margin-top:14px">
+      <div class="field-row">
+        <div class="field" style="grid-column:1/-1"><label>Watermark text</label>
+          <input class="fld" id="wm-text" value="CONFIDENTIAL" placeholder="e.g. DRAFT"></div>
+        <div class="field"><label>Opacity <span class="hint" id="wm-opv">30%</span></label>
+          <input type="range" id="wm-op" min="5" max="80" value="30" style="width:100%"></div>
+        <div class="field"><label>Font size</label>
+          <input class="fld" type="number" id="wm-fs" value="48" min="12" max="120"></div>
+        <div class="field"><label>Color</label>
+          <select class="fld" id="wm-col">
+            <option value="gray">Gray</option>
+            <option value="red">Red</option>
+            <option value="blue">Blue</option>
+            <option value="black">Black</option>
+          </select></div>
+      </div>
+      <div class="row"><button class="btn primary" id="wm-go">Add Watermark & Download</button></div>
+      <div class="status muted" id="wm-st"></div>
+    </div>
+  </div>`;
+
+  let pdfFile = null;
+  const dz = $('#wm-dz', root), fi = $('#wm-fi', root);
+  $('#wm-op', root).oninput = e => { $('#wm-opv', root).textContent = e.target.value + '%'; };
+
+  const loadFile = async file => {
+    pdfFile = file;
+    const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+    const doc = await PDFDocument.load(await file.arrayBuffer());
+    $('#wm-info', root).innerHTML = `<div class="note-box" style="margin-top:12px">📄 ${esc(file.name)} · <b>${doc.getPageCount()} pages</b></div>`;
+    $('#wm-ctrl', root).style.display = '';
+  };
+
+  dz.onclick = () => fi.click();
+  fi.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
+
+  $('#wm-go', root).onclick = async () => {
+    const st = $('#wm-st', root);
+    const text = $('#wm-text', root).value || 'WATERMARK';
+    const opacity = parseInt($('#wm-op', root).value) / 100;
+    const fontSize = parseInt($('#wm-fs', root).value) || 48;
+    const colorMap = { gray: [0.5,0.5,0.5], red: [0.8,0.1,0.1], blue: [0.1,0.1,0.8], black: [0,0,0] };
+    const [r,g,b] = colorMap[$('#wm-col', root).value];
+    st.className = 'status muted'; st.textContent = 'Adding watermark…';
+    try {
+      const { PDFDocument, rgb, degrees } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.load(await pdfFile.arrayBuffer());
+      const pages = doc.getPages();
+      for (const page of pages) {
+        const { width, height } = page.getSize();
+        page.drawText(text, {
+          x: width / 2 - (fontSize * text.length * 0.3),
+          y: height / 2,
+          size: fontSize,
+          color: rgb(r, g, b),
+          opacity,
+          rotate: degrees(45),
+        });
+      }
+      const bytes = await doc.save();
+      download(new Blob([bytes],{type:'application/pdf'}), 'watermarked.pdf');
+      st.className='status ok'; st.textContent=`✓ Watermark added to ${pages.length} pages`;
+    } catch(e) { st.className='status err'; st.textContent='✕ '+e.message; }
+  };
+});
+
+T('pdf', 'pdf-page-numbers', 'PDF Page Numbers', 'Add page numbers to a PDF.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="pn-dz">⬆ Click or drop a PDF here</div>
+    <input type="file" id="pn-fi" accept="application/pdf" hidden>
+    <div id="pn-info"></div>
+    <div id="pn-ctrl" style="display:none;margin-top:14px">
+      <div class="field-row">
+        <div class="field"><label>Position</label>
+          <select class="fld" id="pn-pos">
+            <option value="bottom-center">Bottom Center</option>
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="top-center">Top Center</option>
+          </select></div>
+        <div class="field"><label>Start from page #</label>
+          <input class="fld" type="number" id="pn-start" value="1" min="1"></div>
+        <div class="field"><label>Format</label>
+          <select class="fld" id="pn-fmt">
+            <option value="n">1, 2, 3</option>
+            <option value="page-n">Page 1, Page 2</option>
+            <option value="n-of-t">1 of 10</option>
+          </select></div>
+      </div>
+      <div class="row"><button class="btn primary" id="pn-go">Add Page Numbers</button></div>
+      <div class="status muted" id="pn-st"></div>
+    </div>
+  </div>`;
+
+  let pdfFile = null, totalPages = 0;
+  const dz = $('#pn-dz', root), fi = $('#pn-fi', root);
+
+  const loadFile = async file => {
+    pdfFile = file;
+    const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+    const doc = await PDFDocument.load(await file.arrayBuffer());
+    totalPages = doc.getPageCount();
+    $('#pn-info', root).innerHTML = `<div class="note-box" style="margin-top:12px">📄 ${esc(file.name)} · <b>${totalPages} pages</b></div>`;
+    $('#pn-ctrl', root).style.display = '';
+  };
+
+  dz.onclick = () => fi.click();
+  fi.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
+
+  $('#pn-go', root).onclick = async () => {
+    const st = $('#pn-st', root);
+    const pos = $('#pn-pos', root).value;
+    const startN = parseInt($('#pn-start', root).value) || 1;
+    const fmt = $('#pn-fmt', root).value;
+    st.className = 'status muted'; st.textContent = 'Adding page numbers…';
+    try {
+      const { PDFDocument, rgb, StandardFonts } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.load(await pdfFile.arrayBuffer());
+      const font = await doc.embedFont(StandardFonts.Helvetica);
+      const pages = doc.getPages();
+      const fontSize = 11;
+      pages.forEach((page, i) => {
+        const { width, height } = page.getSize();
+        const n = i + startN;
+        const label = fmt === 'n' ? String(n) : fmt === 'page-n' ? 'Page ' + n : n + ' of ' + totalPages;
+        const tw = font.widthOfTextAtSize(label, fontSize);
+        let x = width / 2 - tw / 2, y = 20;
+        if (pos === 'bottom-right') { x = width - tw - 20; y = 20; }
+        if (pos === 'bottom-left') { x = 20; y = 20; }
+        if (pos === 'top-center') { x = width / 2 - tw / 2; y = height - 28; }
+        page.drawText(label, { x, y, size: fontSize, font, color: rgb(0.3,0.3,0.3) });
+      });
+      const bytes = await doc.save();
+      download(new Blob([bytes],{type:'application/pdf'}), 'numbered.pdf');
+      st.className='status ok'; st.textContent=`✓ Page numbers added`;
+    } catch(e) { st.className='status err'; st.textContent='✕ '+e.message; }
+  };
+});
+
+T('pdf', 'pdf-metadata', 'PDF Metadata Viewer', 'View page count, title, author and properties.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="meta-dz">⬆ Click or drop a PDF here<br><span class="subtle">File is never uploaded — reads locally</span></div>
+    <input type="file" id="meta-fi" accept="application/pdf" hidden>
+    <div id="meta-out" style="margin-top:14px"></div>
+  </div>`;
+
+  const dz = $('#meta-dz', root), fi = $('#meta-fi', root);
+
+  const loadFile = async file => {
+    const out = $('#meta-out', root);
+    out.innerHTML = '<div class="status muted">Reading…</div>';
+    try {
+      const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      const rows = [
+        ['File name', file.name],
+        ['File size', (file.size/1024).toFixed(1) + ' KB (' + (file.size/1024/1024).toFixed(2) + ' MB)'],
+        ['Page count', doc.getPageCount()],
+        ['Title', doc.getTitle() || '—'],
+        ['Author', doc.getAuthor() || '—'],
+        ['Subject', doc.getSubject() || '—'],
+        ['Creator', doc.getCreator() || '—'],
+        ['Producer', doc.getProducer() || '—'],
+        ['Keywords', doc.getKeywords() || '—'],
+        ['Created', doc.getCreationDate()?.toLocaleString() || '—'],
+        ['Modified', doc.getModificationDate()?.toLocaleString() || '—'],
+        ['PDF version', '1.' + (doc.context?.header?.minor ?? '?')],
+      ];
+      out.innerHTML = `<div class="result"><table class="kvtable"><tbody>${rows.map(([k,v]) => `<tr><td>${k}</td><td><b>${esc(String(v))}</b></td></tr>`).join('')}</tbody></table></div>`;
+      // Page sizes
+      const pages = doc.getPages();
+      const sizeRows = pages.slice(0,5).map((p,i) => {
+        const {width,height} = p.getSize();
+        return `<tr><td>Page ${i+1}</td><td><b>${Math.round(width)} × ${Math.round(height)} pt</b></td></tr>`;
+      });
+      if (pages.length > 5) sizeRows.push(`<tr><td colspan="2" style="color:var(--muted)">…and ${pages.length-5} more pages</td></tr>`);
+      out.innerHTML += `<div class="result" style="margin-top:12px"><div class="io-label" style="margin-bottom:8px">Page sizes</div><table class="kvtable"><tbody>${sizeRows.join('')}</tbody></table></div>`;
+    } catch(e) { out.innerHTML = '<div class="status err">✕ ' + esc(e.message) + '</div>'; }
+  };
+
+  dz.onclick = () => fi.click();
+  fi.onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); e.dataTransfer.files[0] && loadFile(e.dataTransfer.files[0]); };
+});
+
+T('pdf', 'images-to-pdf', 'Images to PDF', 'Convert JPG/PNG images into a single PDF.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="dropzone" id="i2p-dz">⬆ Click or drop images here<br><span class="subtle">JPG · PNG · WEBP · Multiple files OK</span></div>
+    <input type="file" id="i2p-fi" accept="image/*" multiple hidden>
+    <div id="i2p-list" style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px"></div>
+    <div id="i2p-ctrl" style="display:none;margin-top:14px">
+      <div class="field-row">
+        <div class="field"><label>Page size</label>
+          <select class="fld" id="i2p-size">
+            <option value="auto">Auto (fit image)</option>
+            <option value="a4">A4</option>
+            <option value="letter">Letter</option>
+          </select></div>
+        <div class="field"><label>Margin (pt)</label>
+          <input class="fld" type="number" id="i2p-margin" value="20" min="0" max="100"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="i2p-go">Convert to PDF</button><button class="btn ghost" id="i2p-clear">Clear</button></div>
+      <div class="status muted" id="i2p-st"></div>
+    </div>
+  </div>`;
+
+  let images = [];
+  const dz = $('#i2p-dz', root), fi = $('#i2p-fi', root), list = $('#i2p-list', root);
+
+  const renderList = () => {
+    list.innerHTML = images.map((f, i) => {
+      const url = URL.createObjectURL(f);
+      return `<div style="position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;aspect-ratio:1">
+        <img src="${url}" style="width:100%;height:100%;object-fit:cover">
+        <span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.name)}</span>
+        <button data-rm="${i}" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px">✕</button>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { images.splice(+b.dataset.rm, 1); renderList(); if(!images.length) $('#i2p-ctrl',root).style.display='none'; });
+    if (images.length) $('#i2p-ctrl', root).style.display = '';
+  };
+
+  const addFiles = files => { images.push(...[...files].filter(f => f.type.startsWith('image/'))); renderList(); };
+  dz.onclick = () => fi.click();
+  fi.onchange = e => addFiles(e.target.files);
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = e => { e.preventDefault(); dz.classList.remove('drag'); addFiles(e.dataTransfer.files); };
+  $('#i2p-clear', root).onclick = () => { images = []; renderList(); $('#i2p-ctrl',root).style.display='none'; };
+
+  $('#i2p-go', root).onclick = async () => {
+    const st = $('#i2p-st', root);
+    if (!images.length) { st.className='status err'; st.textContent='✕ Add at least one image'; return; }
+    st.className='status muted'; st.textContent='Converting…';
+    try {
+      const { PDFDocument } = await import('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm');
+      const doc = await PDFDocument.create();
+      const margin = parseInt($('#i2p-margin', root).value) || 0;
+      const sizeMode = $('#i2p-size', root).value;
+      const A4 = [595, 842], LETTER = [612, 792];
+
+      for (const file of images) {
+        const buf = await file.arrayBuffer();
+        let img;
+        if (file.type === 'image/png') img = await doc.embedPng(buf);
+        else img = await doc.embedJpg(buf);
+        const { width: iw, height: ih } = img;
+        let pw, ph;
+        if (sizeMode === 'a4') { [pw, ph] = A4; }
+        else if (sizeMode === 'letter') { [pw, ph] = LETTER; }
+        else { pw = iw + margin * 2; ph = ih + margin * 2; }
+        const page = doc.addPage([pw, ph]);
+        const maxW = pw - margin * 2, maxH = ph - margin * 2;
+        const scale = Math.min(maxW / iw, maxH / ih, 1);
+        const dw = iw * scale, dh = ih * scale;
+        page.drawImage(img, { x: (pw - dw) / 2, y: (ph - dh) / 2, width: dw, height: dh });
+      }
+      const bytes = await doc.save();
+      download(new Blob([bytes],{type:'application/pdf'}), 'images.pdf');
+      st.className='status ok'; st.textContent=`✓ ${images.length} image(s) converted`;
+    } catch(e) { st.className='status err'; st.textContent='✕ '+e.message; }
+  };
+});
 
 /* ================================================================
    App shell: nav, router, search, theme
