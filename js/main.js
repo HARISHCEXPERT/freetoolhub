@@ -948,6 +948,1308 @@ T('student', 'marks', 'Marks / Grade Calculator', 'Total, percentage & grade.', 
   compute: v => { let ob = 0, mx = 0; for (const l of v.rows.split('\n')) { if (!l.trim()) continue; const [o, m] = l.split(',').map(num); ob += o; mx += m; } if (!mx) return errBox('Enter marks'); const p = ob / mx * 100; const g = p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B' : p >= 60 ? 'C' : p >= 40 ? 'D' : 'F'; return bigResult(stat(fmt(ob, 0) + '/' + fmt(mx, 0), 'Total', false), stat(fmt(p) + '%', 'Percentage', true), stat(g, 'Grade')); },
 }));
 
+/* ---------------- STUDENT — MATHS & SCIENCE (advanced) ---------------- */
+
+/* ── Quadratic / Cubic / Quartic Solver ── */
+T('student', 'poly-solver', 'Polynomial Equation Solver', 'Solve quadratic, cubic and quartic equations with complex roots.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Degree</label>
+        <select class="fld" id="ps-deg">
+          <option value="2">Quadratic (ax²+bx+c)</option>
+          <option value="3">Cubic (ax³+bx²+cx+d)</option>
+          <option value="4">Quartic (ax⁴+bx³+cx²+dx+e)</option>
+        </select></div>
+    </div>
+    <div class="field-row" id="ps-fields"></div>
+    <div class="row"><button class="btn primary" id="ps-go">Solve</button></div>
+    <div id="ps-out"></div>
+  </div>`;
+
+  const labels = { 2: ['a','b','c'], 3: ['a','b','c','d'], 4: ['a','b','c','d','e'] };
+  const superscripts = { 2: ['x²','x',''], 3: ['x³','x²','x',''], 4: ['x⁴','x³','x²','x',''] };
+
+  function buildFields() {
+    const deg = parseInt($('#ps-deg', root).value);
+    const lbls = labels[deg];
+    $('#ps-fields', root).innerHTML = lbls.map((l, i) =>
+      `<div class="field"><label>${l} <span class="hint">(${superscripts[deg][i] || 'constant'})</span></label>
+       <input class="fld" id="ps-${l}" type="number" step="any" value="${i===0?1:0}"></div>`
+    ).join('');
+  }
+
+  function cplx(re, im) {
+    if (Math.abs(im) < 1e-9) return fmt(re, 6);
+    const sign = im >= 0 ? '+' : '-';
+    return `${fmt(re,6)} ${sign} ${fmt(Math.abs(im),6)}i`;
+  }
+
+  function solveQuad(a, b, c) {
+    const disc = b*b - 4*a*c;
+    if (disc >= 0) {
+      const r1 = (-b + Math.sqrt(disc)) / (2*a);
+      const r2 = (-b - Math.sqrt(disc)) / (2*a);
+      return [{ re: r1, im: 0 }, { re: r2, im: 0 }];
+    }
+    const re = -b / (2*a), im = Math.sqrt(-disc) / (2*a);
+    return [{ re, im }, { re, im: -im }];
+  }
+
+  function solveCubic(a, b, c, d) {
+    // Cardano's method
+    b/=a; c/=a; d/=a;
+    const p = c - b*b/3;
+    const q = 2*b*b*b/27 - b*c/3 + d;
+    const disc = q*q/4 + p*p*p/27;
+    const cbrt = (x) => x < 0 ? -Math.pow(-x, 1/3) : Math.pow(x, 1/3);
+    const shift = b/3;
+    if (disc > 1e-10) {
+      const u = cbrt(-q/2 + Math.sqrt(disc));
+      const v = cbrt(-q/2 - Math.sqrt(disc));
+      const r1 = u + v - shift;
+      const re = -(u+v)/2 - shift, im = (u-v)*Math.sqrt(3)/2;
+      return [{ re: r1, im: 0 }, { re, im }, { re, im: -im }];
+    }
+    if (Math.abs(disc) <= 1e-10) {
+      const u = cbrt(-q/2);
+      return [{ re: 2*u - shift, im: 0 }, { re: -u - shift, im: 0 }, { re: -u - shift, im: 0 }];
+    }
+    const r = Math.sqrt(-p*p*p/27), theta = Math.acos(-q/(2*r));
+    const m = 2*Math.cbrt(r);
+    return [0,1,2].map(k => ({ re: m*Math.cos((theta+2*Math.PI*k)/3) - shift, im: 0 }));
+  }
+
+  function solveQuartic(a, b, c, d, e) {
+    // Companion matrix eigenvalue approach via numerical method (Newton's + deflation)
+    // Using Ferrari's method
+    b/=a; c/=a; d/=a; e/=a;
+    // Substitute x = t - b/4
+    const s = b/4;
+    const p = c - 6*s*s;
+    const q = d + 2*s*(2*s*s - c);  // fixed sign
+    const r2 = e - s*(d - s*(c - s*(b - 3*s)));  // constant term after shift
+    // Resolvent cubic: 8m³ + 8pm² + (2p²-8r)m - q² = 0
+    const roots3 = solveCubic(8, 8*p, 2*p*p - 8*r2, -q*q);
+    let m = roots3.find(r => Math.abs(r.im) < 1e-6)?.re ?? roots3[0].re;
+    if (m < 0) m = 0;
+    const sqrtM = Math.sqrt(Math.abs(m));
+    const quads = [];
+    if (sqrtM < 1e-9) {
+      quads.push([1, 0, p/2 + m - Math.sqrt(Math.max(0,(p/2+m)**2 - r2))]);
+      quads.push([1, 0, p/2 + m + Math.sqrt(Math.max(0,(p/2+m)**2 - r2))]);
+    } else {
+      quads.push([1,  2*sqrtM, m + p/2 - q/(4*sqrtM)]);
+      quads.push([1, -2*sqrtM, m + p/2 + q/(4*sqrtM)]);
+    }
+    return quads.flatMap(([qa, qb, qc]) => solveQuad(qa, qb, qc)).map(r => ({ re: r.re - s, im: r.im }));
+  }
+
+  function render() {
+    const deg = parseInt($('#ps-deg', root).value);
+    const coeffs = labels[deg].map(l => parseFloat($(`#ps-${l}`, root).value) || 0);
+    if (coeffs[0] === 0) { $('#ps-out', root).innerHTML = errBox('Leading coefficient cannot be 0'); return; }
+    let roots;
+    try {
+      if (deg === 2) roots = solveQuad(...coeffs);
+      else if (deg === 3) roots = solveCubic(...coeffs);
+      else roots = solveQuartic(...coeffs);
+    } catch(e) { $('#ps-out', root).innerHTML = errBox(e.message); return; }
+
+    const eqn = coeffs.map((c, i) => {
+      const exp = deg - i;
+      const term = exp > 1 ? `${c}x${superscripts[deg][i]}` : exp === 1 ? `${c}x` : `${c}`;
+      return (i === 0 ? '' : (c >= 0 ? ' + ' : ' ')) + term;
+    }).join('').replace(/\+ -/g,'- ') + ' = 0';
+
+    const rowsHtml = roots.map((r, i) =>
+      `<tr><td>x<sub>${i+1}</sub></td><td><b>${cplx(r.re, r.im)}</b></td>
+       <td style="color:var(--muted);font-size:12px">${Math.abs(r.im) > 1e-9 ? 'Complex' : 'Real'}</td></tr>`
+    ).join('');
+
+    $('#ps-out', root).innerHTML = `
+      <div class="result">
+        <div class="note-box" style="font-family:var(--mono);font-size:13px;margin-bottom:12px">${esc(eqn)}</div>
+        <table class="kvtable"><tbody>${rowsHtml}</tbody></table>
+      </div>`;
+  }
+
+  $('#ps-deg', root).onchange = () => { buildFields(); };
+  $('#ps-go', root).onclick = render;
+  buildFields();
+});
+
+/* ── Linear System Solver (up to 5×5) ── */
+T('student', 'linear-system', 'Linear System Solver', 'Solve systems of linear equations (up to 5×5) using Gaussian elimination.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Number of variables</label>
+        <select class="fld" id="ls-n"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
+    </div>
+    <div id="ls-grid" style="margin:14px 0;overflow-x:auto"></div>
+    <div class="row"><button class="btn primary" id="ls-go">Solve</button><button class="btn ghost" id="ls-clear">Clear</button></div>
+    <div id="ls-out"></div>
+    <div class="note-box" style="margin-top:12px">Enter coefficients in the augmented matrix [A|b]. Each row = one equation.</div>
+  </div>`;
+
+  function buildGrid() {
+    const n = parseInt($('#ls-n', root).value);
+    const vars = ['x','y','z','w','v'].slice(0, n);
+    let html = `<table style="border-collapse:collapse;font-size:13px">
+      <thead><tr>${vars.map(v => `<th style="padding:4px 8px;color:var(--muted)">${v}</th>`).join('')}<th style="padding:4px 12px;color:var(--accent)">= b</th></tr></thead><tbody>`;
+    for (let i = 0; i < n; i++) {
+      html += `<tr>${Array.from({length: n+1}, (_, j) =>
+        `<td style="padding:4px"><input class="fld ls-cell" data-r="${i}" data-c="${j}" type="number" step="any" value="0" style="width:70px;text-align:center"></td>`
+      ).join('')}</tr>`;
+    }
+    html += '</tbody></table>';
+    $('#ls-grid', root).innerHTML = html;
+  }
+
+  function gaussianElim(M, n) {
+    // Forward elimination with partial pivoting
+    for (let col = 0; col < n; col++) {
+      let maxRow = col;
+      for (let row = col+1; row < n; row++) if (Math.abs(M[row][col]) > Math.abs(M[maxRow][col])) maxRow = row;
+      [M[col], M[maxRow]] = [M[maxRow], M[col]];
+      if (Math.abs(M[col][col]) < 1e-12) continue;
+      for (let row = col+1; row < n; row++) {
+        const factor = M[row][col] / M[col][col];
+        for (let k = col; k <= n; k++) M[row][k] -= factor * M[col][k];
+      }
+    }
+    // Back substitution
+    const x = new Array(n).fill(0);
+    for (let i = n-1; i >= 0; i--) {
+      if (Math.abs(M[i][i]) < 1e-12) {
+        if (Math.abs(M[i][n]) > 1e-9) throw new Error('No solution (inconsistent system)');
+        x[i] = 0; // free variable
+        continue;
+      }
+      x[i] = M[i][n];
+      for (let j = i+1; j < n; j++) x[i] -= M[i][j] * x[j];
+      x[i] /= M[i][i];
+    }
+    return x;
+  }
+
+  $('#ls-n', root).onchange = buildGrid;
+  $('#ls-clear', root).onclick = () => { root.querySelectorAll('.ls-cell').forEach(c => c.value = '0'); };
+  $('#ls-go', root).onclick = () => {
+    const n = parseInt($('#ls-n', root).value);
+    const vars = ['x','y','z','w','v'].slice(0, n);
+    const M = Array.from({length: n}, (_, i) =>
+      Array.from({length: n+1}, (_, j) => parseFloat(root.querySelector(`[data-r="${i}"][data-c="${j}"]`).value) || 0)
+    );
+    try {
+      const x = gaussianElim(M.map(r => [...r]), n);
+      const rows = vars.map((v, i) => `<tr><td>${v}</td><td><b>${fmt(x[i], 8)}</b></td></tr>`).join('');
+      // Verification
+      const checks = Array.from({length: n}, (_, i) => {
+        const lhs = M[i].slice(0, n).reduce((s, c, j) => s + c * x[j], 0);
+        return Math.abs(lhs - M[i][n]) < 1e-6 ? '✓' : '✗';
+      });
+      $('#ls-out', root).innerHTML = `<div class="result"><table class="kvtable"><tbody>${rows}</tbody></table>
+        <div class="subtle" style="margin-top:8px;font-size:12px">Verification: ${checks.join(' ')} (substituted back)</div></div>`;
+    } catch(e) { $('#ls-out', root).innerHTML = errBox(e.message); }
+  };
+  buildGrid();
+});
+
+/* ── Matrix Calculator ── */
+T('student', 'matrix-calc', 'Matrix Calculator', 'Add, multiply, determinant, inverse, transpose and rank.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Rows</label><input class="fld" type="number" id="mx-r" value="3" min="1" max="6"></div>
+      <div class="field"><label>Cols</label><input class="fld" type="number" id="mx-c" value="3" min="1" max="6"></div>
+      <div class="field"><label>Operation</label>
+        <select class="fld" id="mx-op">
+          <option value="det">Determinant</option>
+          <option value="inv">Inverse</option>
+          <option value="trans">Transpose</option>
+          <option value="rank">Rank</option>
+          <option value="add">A + B</option>
+          <option value="mul">A × B</option>
+        </select></div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin:14px 0">
+      <div><div class="io-label">Matrix A</div><div id="mx-a-grid"></div></div>
+      <div id="mx-b-wrap" style="display:none"><div class="io-label">Matrix B</div><div id="mx-b-grid"></div></div>
+    </div>
+    <div class="row"><button class="btn primary" id="mx-go">Calculate</button><button class="btn ghost" id="mx-identity">Identity</button><button class="btn ghost" id="mx-clear">Clear</button></div>
+    <div id="mx-out"></div>
+  </div>`;
+
+  const makeGrid = (id, rows, cols, vals) => {
+    const el = document.getElementById(id);
+    el.innerHTML = Array.from({length: rows}, (_, i) =>
+      `<div style="display:flex;gap:4px;margin-bottom:4px">${Array.from({length: cols}, (_, j) =>
+        `<input class="fld mx-cell" data-id="${id}" data-r="${i}" data-c="${j}" type="number" step="any"
+         value="${vals?.[i]?.[j] ?? 0}" style="width:60px;text-align:center;padding:6px 4px">`
+      ).join('')}</div>`
+    ).join('');
+  };
+
+  const readMat = (id, r, c) => Array.from({length: r}, (_, i) =>
+    Array.from({length: c}, (_, j) => parseFloat(root.querySelector(`[data-id="${id}"][data-r="${i}"][data-c="${j}"]`)?.value) || 0)
+  );
+
+  const det = (M) => {
+    const n = M.length;
+    if (n === 1) return M[0][0];
+    if (n === 2) return M[0][0]*M[1][1] - M[0][1]*M[1][0];
+    return M[0].reduce((sum, val, j) => {
+      const minor = M.slice(1).map(r => r.filter((_,k) => k !== j));
+      return sum + (j%2===0?1:-1) * val * det(minor);
+    }, 0);
+  };
+
+  const inv = (M) => {
+    const n = M.length;
+    const aug = M.map((r, i) => [...r, ...Array.from({length: n}, (_, j) => i===j ? 1 : 0)]);
+    for (let col = 0; col < n; col++) {
+      let maxRow = col;
+      for (let row = col+1; row < n; row++) if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) maxRow = row;
+      [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+      const pivot = aug[col][col];
+      if (Math.abs(pivot) < 1e-12) throw new Error('Matrix is singular (not invertible)');
+      for (let k = 0; k < 2*n; k++) aug[col][k] /= pivot;
+      for (let row = 0; row < n; row++) {
+        if (row === col) continue;
+        const factor = aug[row][col];
+        for (let k = 0; k < 2*n; k++) aug[row][k] -= factor * aug[col][k];
+      }
+    }
+    return aug.map(r => r.slice(n));
+  };
+
+  const rank = (M) => {
+    const A = M.map(r => [...r]);
+    const rows = A.length, cols = A[0].length;
+    let r = 0;
+    for (let col = 0; col < cols && r < rows; col++) {
+      let pivot = -1;
+      for (let row = r; row < rows; row++) if (Math.abs(A[row][col]) > 1e-9) { pivot = row; break; }
+      if (pivot === -1) continue;
+      [A[r], A[pivot]] = [A[pivot], A[r]];
+      for (let row = 0; row < rows; row++) {
+        if (row === r || Math.abs(A[row][col]) < 1e-12) continue;
+        const f = A[row][col] / A[r][col];
+        for (let k = 0; k < cols; k++) A[row][k] -= f * A[r][k];
+      }
+      r++;
+    }
+    return r;
+  };
+
+  const matMul = (A, B) => {
+    const ra = A.length, ca = A[0].length, cb = B[0].length;
+    if (ca !== B.length) throw new Error(`Incompatible dimensions: ${ra}×${ca} × ${B.length}×${cb}`);
+    return Array.from({length: ra}, (_, i) =>
+      Array.from({length: cb}, (_, j) =>
+        A[i].reduce((s, _, k) => s + A[i][k]*B[k][j], 0)
+      )
+    );
+  };
+
+  const renderMat = (M, label) => {
+    const rows = M.map(r =>
+      `<tr>${r.map(v => `<td style="padding:4px 10px;text-align:center;font-family:var(--mono);font-size:13px;border:1px solid var(--line)">${fmt(v,6)}</td>`).join('')}</tr>`
+    ).join('');
+    return `<div class="result"><div class="io-label" style="margin-bottom:6px">${label}</div>
+      <table style="border-collapse:collapse">${rows}</table></div>`;
+  };
+
+  const rebuild = () => {
+    const r = clamp(parseInt($('#mx-r',root).value)||3,1,6);
+    const c = clamp(parseInt($('#mx-c',root).value)||3,1,6);
+    const op = $('#mx-op',root).value;
+    makeGrid('mx-a-grid', r, c);
+    const needsB = op === 'add' || op === 'mul';
+    $('#mx-b-wrap',root).style.display = needsB ? '' : 'none';
+    if (needsB) makeGrid('mx-b-grid', r, c);
+  };
+
+  ['mx-r','mx-c','mx-op'].forEach(id => $('#'+id,root).addEventListener('change', rebuild));
+  $('#mx-identity',root).onclick = () => {
+    const n = clamp(parseInt($('#mx-r',root).value)||3,1,6);
+    $('#mx-r',root).value = n; $('#mx-c',root).value = n;
+    const identity = Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+    makeGrid('mx-a-grid', n, n, identity);
+    $('#mx-b-wrap',root).style.display='none';
+  };
+  $('#mx-clear',root).onclick = () => rebuild();
+
+  $('#mx-go',root).onclick = () => {
+    const r = clamp(parseInt($('#mx-r',root).value)||3,1,6);
+    const c = clamp(parseInt($('#mx-c',root).value)||3,1,6);
+    const op = $('#mx-op',root).value;
+    const A = readMat('mx-a-grid', r, c);
+    try {
+      let html = '';
+      if (op === 'det') {
+        if (r !== c) throw new Error('Determinant requires a square matrix');
+        html = `<div class="result">${bigResult(stat(fmt(det(A),8), 'Determinant', true))}</div>`;
+      } else if (op === 'inv') {
+        if (r !== c) throw new Error('Inverse requires a square matrix');
+        html = renderMat(inv(A), 'A⁻¹ (Inverse)');
+      } else if (op === 'trans') {
+        html = renderMat(A[0].map((_,i) => A.map(r => r[i])), 'Aᵀ (Transpose)');
+      } else if (op === 'rank') {
+        html = `<div class="result">${bigResult(stat(rank(A), 'Rank', true))}</div>`;
+      } else if (op === 'add') {
+        const B = readMat('mx-b-grid', r, c);
+        html = renderMat(A.map((row,i) => row.map((v,j) => v + B[i][j])), 'A + B');
+      } else if (op === 'mul') {
+        const B = readMat('mx-b-grid', r, c);
+        html = renderMat(matMul(A, B), 'A × B');
+      }
+      $('#mx-out',root).innerHTML = html;
+    } catch(e) { $('#mx-out',root).innerHTML = errBox(e.message); }
+  };
+  rebuild();
+});
+
+/* ── Statistics Calculator ── */
+T('student', 'stats-calc', 'Statistics Calculator', 'Mean, median, mode, SD, variance, quartiles, skewness, z-scores.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field"><label>Data <span class="hint">comma or newline separated</span></label>
+      <textarea class="ta wrap" id="st-data" style="min-height:100px" placeholder="23, 45, 12, 67, 34, 45, 89, 12, 45, 56"></textarea></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn primary" id="st-go">Calculate</button>
+      <button class="btn ghost" id="st-sample">Sample data</button>
+    </div>
+    <div id="st-out"></div>
+  </div>`;
+
+  $('#st-sample',root).onclick = () => { $('#st-data',root).value = '23, 45, 12, 67, 34, 45, 89, 12, 45, 56, 78, 34, 90, 11, 55'; run(); };
+
+  const run = () => {
+    const raw = $('#st-data',root).value.trim();
+    if (!raw) return;
+    const data = raw.split(/[\n,]+/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n)).sort((a,b) => a-b);
+    if (!data.length) { $('#st-out',root).innerHTML = errBox('No valid numbers found'); return; }
+    const n = data.length;
+    const mean = data.reduce((s,v) => s+v, 0) / n;
+    const median = n%2 ? data[Math.floor(n/2)] : (data[n/2-1]+data[n/2])/2;
+    const freq = {}; data.forEach(v => freq[v] = (freq[v]||0)+1);
+    const maxF = Math.max(...Object.values(freq));
+    const mode = Object.entries(freq).filter(([,f]) => f===maxF).map(([v]) => v).join(', ');
+    const variance = data.reduce((s,v) => s+(v-mean)**2, 0) / (n-1);
+    const sd = Math.sqrt(variance);
+    const popVar = data.reduce((s,v) => s+(v-mean)**2, 0) / n;
+    const popSd = Math.sqrt(popVar);
+    const q1 = data[Math.floor(n/4)];
+    const q3 = data[Math.floor(3*n/4)];
+    const iqr = q3 - q1;
+    const skew = data.reduce((s,v) => s+((v-mean)/sd)**3, 0) / n;
+    const kurt = data.reduce((s,v) => s+((v-mean)/sd)**4, 0) / n - 3;
+    const zscores = data.slice(0,10).map(v => `${fmt(v,2)}→${fmt((v-mean)/sd,3)}`).join(', ');
+
+    $('#st-out',root).innerHTML = `
+      ${bigResult(
+        stat(fmt(mean,6), 'Mean', true),
+        stat(fmt(median,6), 'Median'),
+        stat(mode, 'Mode'),
+        stat(n, 'Count')
+      )}
+      <div class="result"><table class="kvtable"><tbody>
+        <tr><td>Min</td><td><b>${fmt(data[0],6)}</b></td></tr>
+        <tr><td>Max</td><td><b>${fmt(data[n-1],6)}</b></td></tr>
+        <tr><td>Range</td><td><b>${fmt(data[n-1]-data[0],6)}</b></td></tr>
+        <tr><td>Q1 (25th %ile)</td><td><b>${fmt(q1,6)}</b></td></tr>
+        <tr><td>Q3 (75th %ile)</td><td><b>${fmt(q3,6)}</b></td></tr>
+        <tr><td>IQR</td><td><b>${fmt(iqr,6)}</b></td></tr>
+        <tr><td>Sample variance (s²)</td><td><b>${fmt(variance,6)}</b></td></tr>
+        <tr><td>Sample SD (s)</td><td><b>${fmt(sd,6)}</b></td></tr>
+        <tr><td>Population variance (σ²)</td><td><b>${fmt(popVar,6)}</b></td></tr>
+        <tr><td>Population SD (σ)</td><td><b>${fmt(popSd,6)}</b></td></tr>
+        <tr><td>Skewness</td><td><b>${fmt(skew,6)}</b> <span class="subtle">(${skew>0.5?'right-skewed':skew<-0.5?'left-skewed':'approx. symmetric'})</span></td></tr>
+        <tr><td>Excess kurtosis</td><td><b>${fmt(kurt,6)}</b></td></tr>
+        <tr><td>z-scores (first 10)</td><td style="font-size:12px;font-family:var(--mono)"><b>${zscores}</b></td></tr>
+        <tr><td>Sum</td><td><b>${fmt(data.reduce((s,v)=>s+v,0),6)}</b></td></tr>
+      </tbody></table></div>`;
+  };
+
+  $('#st-go',root).onclick = run;
+  $('#st-data',root).addEventListener('input', () => clearTimeout(root._st_t) || (root._st_t = setTimeout(run, 400)));
+});
+
+/* ── Number Theory: Prime Factorization, LCM, HCF ── */
+T('student', 'number-theory', 'Number Theory Tools', 'Prime factorization, LCM, HCF/GCD, primality test, modular arithmetic.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Operation</label>
+        <select class="fld" id="nt-op">
+          <option value="factor">Prime Factorization</option>
+          <option value="lcm">LCM</option>
+          <option value="gcd">GCD / HCF</option>
+          <option value="prime">Primality Test</option>
+          <option value="mod">Modular Arithmetic</option>
+          <option value="euler">Euler's Totient φ(n)</option>
+        </select></div>
+    </div>
+    <div id="nt-inputs" class="field-row"></div>
+    <div class="row"><button class="btn primary" id="nt-go">Calculate</button></div>
+    <div id="nt-out"></div>
+  </div>`;
+
+  const inputs = {
+    factor: `<div class="field"><label>n</label><input class="fld" id="nt-a" type="number" value="360" min="2"></div>`,
+    lcm:    `<div class="field"><label>Numbers <span class="hint">comma separated</span></label><input class="fld" id="nt-a" value="12, 18, 24"></div>`,
+    gcd:    `<div class="field"><label>Numbers <span class="hint">comma separated</span></label><input class="fld" id="nt-a" value="48, 36, 60"></div>`,
+    prime:  `<div class="field"><label>n</label><input class="fld" id="nt-a" type="number" value="104729"></div>`,
+    mod:    `<div class="field"><label>a</label><input class="fld" id="nt-a" type="number" value="17"></div>
+             <div class="field"><label>b</label><input class="fld" id="nt-b" type="number" value="5"></div>
+             <div class="field"><label>m (modulus)</label><input class="fld" id="nt-m" type="number" value="13"></div>`,
+    euler:  `<div class="field"><label>n</label><input class="fld" id="nt-a" type="number" value="36" min="1"></div>`,
+  };
+
+  $('#nt-op',root).onchange = () => { $('#nt-inputs',root).innerHTML = inputs[$('#nt-op',root).value]; };
+  $('#nt-inputs',root).innerHTML = inputs['factor'];
+
+  const primeFactors = n => {
+    const factors = [];
+    for (let d = 2; d*d <= n; d++) while (n%d===0) { factors.push(d); n/=d; }
+    if (n > 1) factors.push(n);
+    return factors;
+  };
+  const gcdTwo = (a,b) => b===0?a:gcdTwo(b,a%b);
+  const isPrime = n => {
+    if (n < 2) return false;
+    if (n < 4) return true;
+    if (n%2===0||n%3===0) return false;
+    for (let i=5; i*i<=n; i+=6) if (n%i===0||n%(i+2)===0) return false;
+    return true;
+  };
+  const euler = n => {
+    let result = n;
+    const orig = n;
+    for (let p=2; p*p<=n; p++) if (n%p===0) { while(n%p===0) n/=p; result -= result/p; }
+    if (n > 1) result -= result/n;
+    return result;
+  };
+
+  $('#nt-go',root).onclick = () => {
+    const op = $('#nt-op',root).value;
+    const aVal = $('#nt-a',root)?.value || '';
+    const out = $('#nt-out',root);
+    try {
+      if (op === 'factor') {
+        const n = parseInt(aVal);
+        if (n < 2 || n > 1e12) throw new Error('Enter a number between 2 and 10¹²');
+        const f = primeFactors(n);
+        const grouped = {};
+        f.forEach(p => grouped[p] = (grouped[p]||0)+1);
+        const notation = Object.entries(grouped).map(([p,e]) => e>1?`${p}^${e}`:p).join(' × ');
+        out.innerHTML = `<div class="result"><table class="kvtable"><tbody>
+          <tr><td>Prime factorization</td><td><b>${n} = ${notation}</b></td></tr>
+          <tr><td>Factors</td><td><b>${f.join(' × ')}</b></td></tr>
+          <tr><td>Number of prime factors</td><td><b>${f.length}</b></td></tr>
+          <tr><td>Distinct prime factors</td><td><b>${Object.keys(grouped).join(', ')}</b></td></tr>
+        </tbody></table></div>`;
+      } else if (op === 'lcm') {
+        const nums = aVal.split(',').map(s => parseInt(s.trim())).filter(n => n > 0);
+        if (nums.length < 2) throw new Error('Enter at least 2 numbers');
+        const lcmTwo = (a,b) => a/gcdTwo(a,b)*b;
+        const result = nums.reduce(lcmTwo);
+        out.innerHTML = `<div class="result">${bigResult(stat(result, 'LCM', true))}</div>
+          <div class="result"><div class="subtle">LCM(${nums.join(', ')}) = ${result}</div></div>`;
+      } else if (op === 'gcd') {
+        const nums = aVal.split(',').map(s => parseInt(s.trim())).filter(n => n > 0);
+        if (nums.length < 2) throw new Error('Enter at least 2 numbers');
+        const result = nums.reduce(gcdTwo);
+        out.innerHTML = `<div class="result">${bigResult(stat(result, 'GCD / HCF', true))}</div>`;
+      } else if (op === 'prime') {
+        const n = parseInt(aVal);
+        const prime = isPrime(n);
+        const factors = prime ? [] : primeFactors(n);
+        out.innerHTML = `<div class="result">${bigResult(stat(prime ? 'Prime ✓' : 'Composite ✗', n, prime))}</div>
+          ${!prime ? `<div class="result"><table class="kvtable"><tbody>
+            <tr><td>Factorization</td><td><b>${factors.join(' × ')}</b></td></tr>
+          </tbody></table></div>` : ''}`;
+      } else if (op === 'mod') {
+        const a = parseInt(aVal), b = parseInt($('#nt-b',root).value), m = parseInt($('#nt-m',root).value);
+        if (m <= 0) throw new Error('Modulus must be positive');
+        out.innerHTML = `<div class="result"><table class="kvtable"><tbody>
+          <tr><td>a + b (mod m)</td><td><b>${((a+b)%m+m)%m}</b></td></tr>
+          <tr><td>a − b (mod m)</td><td><b>${((a-b)%m+m)%m}</b></td></tr>
+          <tr><td>a × b (mod m)</td><td><b>${((a*b)%m+m)%m}</b></td></tr>
+          <tr><td>a mod m</td><td><b>${((a%m)+m)%m}</b></td></tr>
+          <tr><td>b mod m</td><td><b>${((b%m)+m)%m}</b></td></tr>
+          <tr><td>aᵇ mod m</td><td><b>${(() => { let r=1,base=((a%m)+m)%m,exp=b; while(exp>0){if(exp%2===1)r=r*base%m;base=base*base%m;exp=Math.floor(exp/2);} return r; })()}</b></td></tr>
+        </tbody></table></div>`;
+      } else if (op === 'euler') {
+        const n = parseInt(aVal);
+        if (n < 1) throw new Error('Enter a positive integer');
+        const phi = euler(n);
+        out.innerHTML = `<div class="result">${bigResult(stat(`φ(${n}) = ${phi}`, 'Euler\'s Totient', true))}</div>
+          <div class="note-box">φ(${n}) = ${phi} means there are ${phi} integers from 1 to ${n} that are coprime to ${n}.</div>`;
+      }
+    } catch(e) { out.innerHTML = errBox(e.message); }
+  };
+});
+
+/* ── Base Converter ── */
+T('student', 'base-converter', 'Number Base Converter', 'Convert between any bases 2–36. Supports binary, octal, decimal, hex and custom.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field" style="grid-column:1/-1"><label>Number</label>
+        <input class="fld" id="bc-val" placeholder="Enter number…" spellcheck="false"></div>
+      <div class="field"><label>From base</label>
+        <select class="fld" id="bc-from">
+          <option value="2">2 — Binary</option>
+          <option value="8">8 — Octal</option>
+          <option value="10" selected>10 — Decimal</option>
+          <option value="16">16 — Hexadecimal</option>
+          <option value="custom-from">Custom…</option>
+        </select></div>
+      <div class="field" id="bc-from-custom-wrap" style="display:none"><label>From base (2–36)</label>
+        <input class="fld" id="bc-from-n" type="number" min="2" max="36" value="12"></div>
+    </div>
+    <div id="bc-out"></div>
+  </div>`;
+
+  $('#bc-from',root).onchange = () => {
+    $('#bc-from-custom-wrap',root).style.display = $('#bc-from',root).value==='custom-from' ? '' : 'none';
+    run();
+  };
+
+  const run = () => {
+    const raw = $('#bc-val',root).value.trim().toUpperCase();
+    if (!raw) { $('#bc-out',root).innerHTML = ''; return; }
+    const fromSel = $('#bc-from',root).value;
+    const fromBase = fromSel === 'custom-from' ? parseInt($('#bc-from-n',root).value)||10 : parseInt(fromSel);
+    try {
+      const decimal = parseInt(raw, fromBase);
+      if (isNaN(decimal)) throw new Error(`"${raw}" is not a valid base-${fromBase} number`);
+      const bases = [
+        [2, 'Binary'], [3, 'Ternary'], [4, 'Base 4'], [6, 'Base 6'],
+        [8, 'Octal'], [10, 'Decimal'], [12, 'Duodecimal'],
+        [16, 'Hexadecimal'], [32, 'Base 32'], [36, 'Base 36']
+      ];
+      const rows = bases.map(([b, name]) =>
+        `<tr${b===10?' style="font-weight:500"':''}><td>${b} <span class="subtle">(${name})</span></td>
+         <td style="font-family:var(--mono)"><b>${decimal.toString(b).toUpperCase()}</b></td></tr>`
+      ).join('');
+      $('#bc-out',root).innerHTML = `<div class="result"><div class="note-box" style="margin-bottom:10px">
+        Decimal value: <b>${decimal}</b> (input: ${raw} in base ${fromBase})</div>
+        <table class="kvtable"><tbody>${rows}</tbody></table></div>`;
+    } catch(e) { $('#bc-out',root).innerHTML = errBox(e.message); }
+  };
+
+  ['bc-val','bc-from-n'].forEach(id => $('#'+id,root).addEventListener('input', run));
+  run();
+});
+
+/* ── Trigonometry Calculator ── */
+T('student', 'trig-calc', 'Trigonometry Calculator', 'All trig functions, inverse functions, and identities — degrees or radians.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Angle</label>
+        <input class="fld" id="tg-val" type="number" step="any" value="30"></div>
+      <div class="field"><label>Unit</label>
+        <select class="fld" id="tg-unit"><option value="deg" selected>Degrees</option><option value="rad">Radians</option></select></div>
+    </div>
+    <div id="tg-out"></div>
+    <div style="margin-top:24px;border-top:1px solid var(--line);padding-top:16px">
+      <div class="io-label" style="margin-bottom:10px">Inverse functions</div>
+      <div class="field-row">
+        <div class="field"><label>Value</label><input class="fld" id="tg-inv-val" type="number" step="any" value="0.5"></div>
+        <div class="field"><label>Function</label>
+          <select class="fld" id="tg-inv-fn">
+            <option>arcsin</option><option>arccos</option><option>arctan</option>
+          </select></div>
+      </div>
+      <div class="row"><button class="btn" id="tg-inv-go">Calculate Inverse</button></div>
+      <div id="tg-inv-out"></div>
+    </div>
+  </div>`;
+
+  const run = () => {
+    let a = parseFloat($('#tg-val',root).value);
+    if (isNaN(a)) return;
+    const rad = $('#tg-unit',root).value === 'deg' ? a * Math.PI / 180 : a;
+    const f6 = v => isFinite(v) ? fmt(v,8) : '∞ (undefined)';
+    $('#tg-out',root).innerHTML = `<div class="result"><table class="kvtable"><tbody>
+      <tr><td>sin</td><td><b>${f6(Math.sin(rad))}</b></td></tr>
+      <tr><td>cos</td><td><b>${f6(Math.cos(rad))}</b></td></tr>
+      <tr><td>tan</td><td><b>${f6(Math.tan(rad))}</b></td></tr>
+      <tr><td>csc (1/sin)</td><td><b>${f6(1/Math.sin(rad))}</b></td></tr>
+      <tr><td>sec (1/cos)</td><td><b>${f6(1/Math.cos(rad))}</b></td></tr>
+      <tr><td>cot (1/tan)</td><td><b>${f6(1/Math.tan(rad))}</b></td></tr>
+      <tr><td>sinh</td><td><b>${f6(Math.sinh(rad))}</b></td></tr>
+      <tr><td>cosh</td><td><b>${f6(Math.cosh(rad))}</b></td></tr>
+      <tr><td>tanh</td><td><b>${f6(Math.tanh(rad))}</b></td></tr>
+      <tr><td>In radians</td><td><b>${fmt(rad,8)}</b></td></tr>
+      <tr><td>In degrees</td><td><b>${fmt(a * (180/Math.PI) * ($('#tg-unit',root).value==='rad'?1:Math.PI/180) * 180/Math.PI,6)}</b></td></tr>
+    </tbody></table></div>`;
+  };
+
+  ['tg-val','tg-unit'].forEach(id => $('#'+id,root).addEventListener('input', run));
+  $('#tg-inv-go',root).onclick = () => {
+    const v = parseFloat($('#tg-inv-val',root).value);
+    const fn = $('#tg-inv-fn',root).value;
+    const unit = $('#tg-unit',root).value;
+    let rad;
+    if (fn==='arcsin') { if(Math.abs(v)>1) { $('#tg-inv-out',root).innerHTML=errBox('arcsin domain: [-1,1]'); return; } rad=Math.asin(v); }
+    else if (fn==='arccos') { if(Math.abs(v)>1) { $('#tg-inv-out',root).innerHTML=errBox('arccos domain: [-1,1]'); return; } rad=Math.acos(v); }
+    else rad = Math.atan(v);
+    const deg = rad * 180 / Math.PI;
+    $('#tg-inv-out',root).innerHTML = `<div class="result"><table class="kvtable"><tbody>
+      <tr><td>${fn}(${v})</td><td><b>${fmt(unit==='deg'?deg:rad,8)} ${unit==='deg'?'°':'rad'}</b></td></tr>
+      <tr><td>In degrees</td><td><b>${fmt(deg,8)}°</b></td></tr>
+      <tr><td>In radians</td><td><b>${fmt(rad,8)}</b></td></tr>
+    </tbody></table></div>`;
+  };
+  run();
+});
+
+/* ── Binomial Theorem Expander ── */
+T('student', 'binomial-expand', 'Binomial Theorem Expander', 'Expand (ax+by)ⁿ, find specific terms, Pascal\'s triangle row.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>a <span class="hint">(coefficient)</span></label><input class="fld" id="bi-a" type="number" step="any" value="1"></div>
+      <div class="field"><label>x power</label><input class="fld" id="bi-xp" type="number" value="1" min="0"></div>
+      <div class="field"><label>b <span class="hint">(coefficient)</span></label><input class="fld" id="bi-b" type="number" step="any" value="1"></div>
+      <div class="field"><label>y power</label><input class="fld" id="bi-yp" type="number" value="1" min="0"></div>
+      <div class="field"><label>n <span class="hint">(exponent)</span></label><input class="fld" id="bi-n" type="number" value="4" min="0" max="20"></div>
+    </div>
+    <div class="row"><button class="btn primary" id="bi-go">Expand</button></div>
+    <div id="bi-out"></div>
+  </div>`;
+
+  const binom = (n,k) => { if(k<0||k>n)return 0; if(k===0||k===n)return 1; let r=1; for(let i=0;i<k;i++){r=r*(n-i)/(i+1);} return Math.round(r); };
+  const fmtCoeff = (c, first) => {
+    if (c===0) return '';
+    if (first) return c===1?'':c===-1?'-':String(c);
+    return c>0?(c===1?' + ':` + ${c}`):(c===-1?' - ':` - ${Math.abs(c)}`);
+  };
+
+  $('#bi-go',root).onclick = () => {
+    const a = parseFloat($('#bi-a',root).value)||1;
+    const b = parseFloat($('#bi-b',root).value)||1;
+    const xp = parseInt($('#bi-xp',root).value)||1;
+    const yp = parseInt($('#bi-yp',root).value)||1;
+    const n = parseInt($('#bi-n',root).value)||4;
+    const terms = [];
+    let expansion = '';
+    for (let k=0; k<=n; k++) {
+      const C = binom(n,k);
+      const aPow = n-k, bPow = k;
+      const coeff = C * Math.pow(a,aPow) * Math.pow(b,bPow);
+      const xExp = aPow*xp, yExp = bPow*yp;
+      const xPart = xExp===0?'':(xExp===1?'x':`x^${xExp}`);
+      const yPart = yExp===0?'':(yExp===1?'y':`y^${yExp}`);
+      const term = `${Math.abs(coeff)===1&&(xPart||yPart)?'':(coeff<0&&k>0?Math.abs(coeff):Math.abs(coeff))}${xPart}${yPart}`;
+      expansion += (k===0?(coeff<0?'-':''):`${coeff<0?' - ':' + '}`) + term;
+      terms.push({ k, C, coeff, term: `${coeff<0?'-':''}${term}`, xExp, yExp });
+    }
+    const rows = terms.map(t =>
+      `<tr><td>k=${t.k}</td><td>C(${n},${t.k})=${t.C}</td><td style="font-family:var(--mono)">${t.coeff>=0?'+':'-'}${Math.abs(t.coeff)}${t.xExp?`x^${t.xExp}`:''}${t.yExp?`y^${t.yExp}`:''}</td></tr>`
+    ).join('');
+    const pascal = Array.from({length:n+1},(_,k)=>binom(n,k)).join('  ');
+    $('#bi-out',root).innerHTML = `
+      <div class="result"><div class="io-label" style="margin-bottom:8px">Expansion</div>
+        <div style="font-family:var(--mono);font-size:13px;line-height:1.8;word-break:break-all;padding:12px;background:var(--panel);border-radius:var(--radius)">${esc(expansion.trim())}</div>
+      </div>
+      <div class="result"><div class="io-label" style="margin-bottom:8px">Term by term</div>
+        <table class="kvtable"><thead><tr><td>Term</td><td>Binomial coeff</td><td>Value</td></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      <div class="note-box">Pascal's row n=${n}: ${pascal}</div>`;
+  };
+});
+
+/* ── Sequence & Series ── */
+T('student', 'sequences', 'Sequence & Series', 'AP, GP — nth term, partial sums, convergence.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Type</label>
+        <select class="fld" id="sq-type">
+          <option value="ap">Arithmetic Progression (AP)</option>
+          <option value="gp">Geometric Progression (GP)</option>
+        </select></div>
+    </div>
+    <div id="sq-fields" class="field-row"></div>
+    <div class="row"><button class="btn primary" id="sq-go">Calculate</button></div>
+    <div id="sq-out"></div>
+  </div>`;
+
+  const apFields = `
+    <div class="field"><label>First term (a)</label><input class="fld" id="sq-a" type="number" step="any" value="2"></div>
+    <div class="field"><label>Common difference (d)</label><input class="fld" id="sq-d" type="number" step="any" value="3"></div>
+    <div class="field"><label>n (number of terms)</label><input class="fld" id="sq-n" type="number" value="10" min="1" max="1000"></div>`;
+  const gpFields = `
+    <div class="field"><label>First term (a)</label><input class="fld" id="sq-a" type="number" step="any" value="2"></div>
+    <div class="field"><label>Common ratio (r)</label><input class="fld" id="sq-r" type="number" step="any" value="3"></div>
+    <div class="field"><label>n (number of terms)</label><input class="fld" id="sq-n" type="number" value="8" min="1" max="50"></div>`;
+
+  const setFields = () => { $('#sq-fields',root).innerHTML = $('#sq-type',root).value==='ap'?apFields:gpFields; };
+  $('#sq-type',root).onchange = setFields;
+  setFields();
+
+  $('#sq-go',root).onclick = () => {
+    const type = $('#sq-type',root).value;
+    const a = parseFloat($('#sq-a',root).value)||0;
+    const n = parseInt($('#sq-n',root).value)||10;
+    const out = $('#sq-out',root);
+    if (type==='ap') {
+      const d = parseFloat($('#sq-d',root).value)||0;
+      const nth = a + (n-1)*d;
+      const sum = n/2*(2*a+(n-1)*d);
+      const terms = Array.from({length:Math.min(n,15)},(_,i)=>fmt(a+i*d,4)).join(', ')+(n>15?', …':'');
+      out.innerHTML = `${bigResult(stat(fmt(nth,8),'nth term (aₙ)',true),stat(fmt(sum,8),'Sum Sₙ'),stat(n,'n'))}
+        <div class="result"><table class="kvtable"><tbody>
+          <tr><td>Formula aₙ</td><td><b>a + (n−1)d = ${a} + (n−1)×${d}</b></td></tr>
+          <tr><td>Formula Sₙ</td><td><b>n/2 × (2a+(n−1)d)</b></td></tr>
+          <tr><td>First ${Math.min(n,15)} terms</td><td style="font-family:var(--mono);font-size:12px"><b>${terms}</b></td></tr>
+        </tbody></table></div>`;
+    } else {
+      const r = parseFloat($('#sq-r',root).value)||1;
+      const nth = a*Math.pow(r,n-1);
+      const sum = Math.abs(r)!==1 ? a*(Math.pow(r,n)-1)/(r-1) : a*n;
+      const infSum = Math.abs(r)<1 ? a/(1-r) : null;
+      const terms = Array.from({length:Math.min(n,12)},(_,i)=>fmt(a*Math.pow(r,i),4)).join(', ')+(n>12?', …':'');
+      out.innerHTML = `${bigResult(stat(fmt(nth,8),'nth term',true),stat(fmt(sum,8),'Sum Sₙ'),stat(infSum!=null?fmt(infSum,6):'∞','S∞'))}
+        <div class="result"><table class="kvtable"><tbody>
+          <tr><td>Common ratio r</td><td><b>${r}</b></td></tr>
+          <tr><td>Convergent?</td><td><b>${Math.abs(r)<1?'Yes (|r| < 1)':'No (|r| ≥ 1)'}</b></td></tr>
+          ${infSum!=null?`<tr><td>Sum to infinity</td><td><b>${fmt(infSum,8)}</b></td></tr>`:''}
+          <tr><td>First ${Math.min(n,12)} terms</td><td style="font-family:var(--mono);font-size:12px"><b>${terms}</b></td></tr>
+        </tbody></table></div>`;
+    }
+  };
+});
+
+/* ── Molecular Weight Calculator ── */
+T('student', 'mol-weight', 'Molecular Weight Calculator', 'Enter any chemical formula — supports nested parentheses. Returns MW, composition & moles.', root => {
+  const ELEMENTS = {H:1.008,He:4.003,Li:6.941,Be:9.012,B:10.811,C:12.011,N:14.007,O:15.999,F:18.998,Ne:20.180,Na:22.990,Mg:24.305,Al:26.982,Si:28.086,P:30.974,S:32.065,Cl:35.453,Ar:39.948,K:39.098,Ca:40.078,Sc:44.956,Ti:47.867,V:50.942,Cr:51.996,Mn:54.938,Fe:55.845,Co:58.933,Ni:58.693,Cu:63.546,Zn:65.38,Ga:69.723,Ge:72.640,As:74.922,Se:78.971,Br:79.904,Kr:83.798,Rb:85.468,Sr:87.620,Y:88.906,Zr:91.224,Nb:92.906,Mo:95.960,Tc:98,Ru:101.07,Rh:102.91,Pd:106.42,Ag:107.87,Cd:112.41,In:114.82,Sn:118.71,Sb:121.76,Te:127.60,I:126.90,Xe:131.29,Cs:132.91,Ba:137.33,La:138.91,Ce:140.12,Pr:140.91,Nd:144.24,Pm:145,Sm:150.36,Eu:151.96,Gd:157.25,Tb:158.93,Dy:162.50,Ho:164.93,Er:167.26,Tm:168.93,Yb:173.05,Lu:174.97,Hf:178.49,Ta:180.95,W:183.84,Re:186.21,Os:190.23,Ir:192.22,Pt:195.08,Au:196.97,Hg:200.59,Tl:204.38,Pb:207.20,Bi:208.98,Po:209,At:210,Rn:222,Fr:223,Ra:226,Ac:227,Th:232.04,Pa:231.04,U:238.03,Np:237,Pu:244,Am:243,Cm:247,Bk:247,Cf:251,Es:252,Fm:257,Md:258,No:259,Lr:262};
+
+  function parseFormula(s) {
+    const stack = [{}];
+    let i = 0;
+    while (i < s.length) {
+      if (s[i] === '(') { stack.push({}); i++; }
+      else if (s[i] === ')') {
+        i++;
+        let num = '';
+        while (i < s.length && /\d/.test(s[i])) { num += s[i++]; }
+        const count = num ? parseInt(num) : 1;
+        const top = stack.pop();
+        Object.entries(top).forEach(([el,n]) => stack[stack.length-1][el] = (stack[stack.length-1][el]||0) + n*count);
+      } else if (/[A-Z]/.test(s[i])) {
+        let el = s[i++];
+        while (i < s.length && /[a-z]/.test(s[i])) el += s[i++];
+        let num = '';
+        while (i < s.length && /\d/.test(s[i])) num += s[i++];
+        const count = num ? parseInt(num) : 1;
+        if (!ELEMENTS[el]) throw new Error(`Unknown element: ${el}`);
+        stack[stack.length-1][el] = (stack[stack.length-1][el]||0) + count;
+      } else throw new Error(`Unexpected character: ${s[i]}`);
+    }
+    return stack[0];
+  }
+
+  root.innerHTML = `<div class="tool-body">
+    <div class="field"><label>Chemical formula</label>
+      <input class="fld" id="mw-f" placeholder="e.g. H2SO4, Ca3(PO4)2, C6H12O6" spellcheck="false" value="H2SO4"></div>
+    <div class="field"><label>Mass (g) <span class="hint">optional — for mole calculation</span></label>
+      <input class="fld" id="mw-mass" type="number" step="any" placeholder="e.g. 49"></div>
+    <div class="row"><button class="btn primary" id="mw-go">Calculate</button></div>
+    <div id="mw-out"></div>
+  </div>`;
+
+  const run = () => {
+    const formula = $('#mw-f',root).value.trim();
+    if (!formula) return;
+    try {
+      const composition = parseFormula(formula);
+      let mw = 0;
+      Object.entries(composition).forEach(([el,n]) => mw += ELEMENTS[el]*n);
+      const mass = parseFloat($('#mw-mass',root).value);
+      const molesHtml = !isNaN(mass) ? `<tr><td>Moles (given ${mass}g)</td><td><b>${fmt(mass/mw,6)} mol</b></td></tr>
+        <tr><td>Molecules (N)</td><td><b>${(mass/mw*6.022e23).toExponential(4)}</b></td></tr>` : '';
+
+      const compRows = Object.entries(composition).map(([el,n]) => {
+        const elMW = ELEMENTS[el]*n;
+        return `<tr><td>${el}</td><td>${n}</td><td>${fmt(ELEMENTS[el],4)}</td><td>${fmt(elMW,4)}</td><td>${fmt(elMW/mw*100,2)}%</td></tr>`;
+      }).join('');
+
+      $('#mw-out',root).innerHTML = `
+        ${bigResult(stat(fmt(mw,4)+' g/mol','Molecular Weight',true),stat(Object.keys(composition).length,'Elements'))}
+        <div class="result"><table class="kvtable"><tbody>
+          <tr><td>Formula</td><td><b>${esc(formula)}</b></td></tr>
+          <tr><td>Molar mass</td><td><b>${fmt(mw,6)} g/mol</b></td></tr>
+          ${molesHtml}
+        </tbody></table></div>
+        <div class="result"><div class="io-label" style="margin-bottom:8px">Elemental composition</div>
+          <table style="width:100%;font-size:13px;border-collapse:collapse">
+            <thead><tr>${['Element','Count','Atomic wt','Mass contrib','% mass'].map(h=>`<th style="text-align:left;padding:4px 8px;color:var(--muted);border-bottom:1px solid var(--line)">${h}</th>`).join('')}</tr></thead>
+            <tbody>${compRows}</tbody>
+          </table></div>`;
+    } catch(e) { $('#mw-out',root).innerHTML = errBox(e.message); }
+  };
+  $('#mw-go',root).onclick = run;
+  $('#mw-f',root).addEventListener('input', () => clearTimeout(root._mw_t)||(root._mw_t=setTimeout(run,500)));
+  run();
+});
+
+/* ── Chemical Equation Balancer ── */
+T('student', 'chem-balancer', 'Chemical Equation Balancer', 'Balance chemical equations using linear algebra (Gaussian elimination).', root => {
+  const ELEMENTS = {H:1,He:2,Li:3,Be:4,B:5,C:6,N:7,O:8,F:9,Ne:10,Na:11,Mg:12,Al:13,Si:14,P:15,S:16,Cl:17,Ar:18,K:19,Ca:20,Fe:26,Cu:29,Zn:30,Ag:47,Au:79,Pb:82,Hg:80,Br:35,I:53,Mn:25,Cr:24,Co:27,Ni:28,Ti:22};
+
+  function parseFormula(s) {
+    const stack = [{}]; let i = 0;
+    while (i < s.length) {
+      if (s[i]==='(') { stack.push({}); i++; }
+      else if (s[i]===')') {
+        i++; let num=''; while(i<s.length&&/\d/.test(s[i]))num+=s[i++];
+        const cnt=num?parseInt(num):1, top=stack.pop();
+        Object.entries(top).forEach(([el,n])=>stack[stack.length-1][el]=(stack[stack.length-1][el]||0)+n*cnt);
+      } else if (/[A-Z]/.test(s[i])) {
+        let el=s[i++]; while(i<s.length&&/[a-z]/.test(s[i]))el+=s[i++];
+        let num=''; while(i<s.length&&/\d/.test(s[i]))num+=s[i++];
+        stack[stack.length-1][el]=(stack[stack.length-1][el]||0)+(num?parseInt(num):1);
+      } else i++;
+    }
+    return stack[0];
+  }
+
+  function gcd(a,b){return b===0?Math.abs(a):gcd(b,a%b);}
+  function lcm(a,b){return a*b/gcd(a,b);}
+
+  function balance(eqn) {
+    // Parse into reactants and products
+    const [lhs, rhs] = eqn.split(/->|→|=/).map(s=>s.trim());
+    if (!rhs) throw new Error('Use -> or = to separate reactants and products');
+    const reactants = lhs.split('+').map(s=>s.trim());
+    const products = rhs.split('+').map(s=>s.trim());
+    const compounds = [...reactants, ...products];
+    const nR = reactants.length, nP = products.length, nC = compounds.length;
+
+    // Get all elements
+    const allEls = [...new Set(compounds.flatMap(c => Object.keys(parseFormula(c))))];
+    const nE = allEls.length;
+
+    // Build matrix: rows=elements, cols=compounds (reactants negative in balance sense)
+    // We solve Ax=0 where A[i][j] = count of element i in compound j (negative for products)
+    const M = allEls.map(el =>
+      compounds.map((c,j) => {
+        const cnt = parseFormula(c)[el] || 0;
+        return j < nR ? cnt : -cnt;
+      })
+    );
+
+    // Add constraint: first coefficient = 1 (fix x[0]=1, solve for rest)
+    // Gaussian elimination on augmented [M | 0]
+    // Use rational arithmetic approximation
+    const rows = M.length, cols = nC;
+    const aug = M.map(r => [...r, 0]);
+
+    // Forward elimination
+    let pivotRow = 0;
+    for (let col = 0; col < cols && pivotRow < rows; col++) {
+      let maxR = pivotRow;
+      for (let r = pivotRow+1; r < rows; r++) if (Math.abs(aug[r][col]) > Math.abs(aug[maxR][col])) maxR = r;
+      if (Math.abs(aug[maxR][col]) < 1e-9) continue;
+      [aug[pivotRow], aug[maxR]] = [aug[maxR], aug[pivotRow]];
+      for (let r = 0; r < rows; r++) {
+        if (r === pivotRow || Math.abs(aug[r][col]) < 1e-12) continue;
+        const f = aug[r][col] / aug[pivotRow][col];
+        for (let k = 0; k <= cols; k++) aug[r][k] -= f * aug[pivotRow][k];
+      }
+      pivotRow++;
+    }
+
+    // Find null space (free variable = last column)
+    // Set last compound coefficient = 1, back-solve
+    const x = new Array(nC).fill(0);
+    x[nC-1] = 1;
+    for (let r = pivotRow-1; r >= 0; r--) {
+      let pivCol = -1;
+      for (let c = 0; c < nC; c++) if (Math.abs(aug[r][c]) > 1e-9) { pivCol = c; break; }
+      if (pivCol === -1) continue;
+      x[pivCol] = -aug[r][nC] / aug[r][pivCol];
+      for (let c = pivCol+1; c < nC; c++) x[pivCol] -= (aug[r][c] / aug[r][pivCol]) * x[c];
+    }
+
+    // Convert to integers
+    const scale = 1000;
+    const ints = x.map(v => Math.round(v * scale));
+    let g = ints.reduce((a,b) => gcd(Math.abs(a),Math.abs(b)));
+    const coeffs = ints.map(v => Math.round(v/g));
+    if (coeffs.some(c => c <= 0)) {
+      // Try negating
+      const neg = coeffs.map(c => -c);
+      if (neg.every(c => c > 0)) return {coeffs: neg, reactants, products, compounds};
+      throw new Error('Could not find positive integer coefficients. Try simplifying the equation.');
+    }
+    return {coeffs, reactants, products, compounds};
+  }
+
+  root.innerHTML = `<div class="tool-body">
+    <div class="field"><label>Chemical equation</label>
+      <input class="fld" id="cb-eq" placeholder="e.g. Fe + O2 -> Fe2O3" spellcheck="false" value="Fe + O2 -> Fe2O3"></div>
+    <div class="row"><button class="btn primary" id="cb-go">Balance</button></div>
+    <div class="note-box">Use <code>-></code> or <code>=</code> to separate sides. Use <code>+</code> between compounds.</div>
+    <div id="cb-out"></div>
+  </div>`;
+
+  $('#cb-go',root).onclick = () => {
+    try {
+      const {coeffs, reactants, products, compounds} = balance($('#cb-eq',root).value);
+      const nR = reactants.length;
+      const fmtCompound = (c, coeff) => (coeff===1?'':coeff) + c;
+      const lhs = reactants.map((c,i) => fmtCompound(c,coeffs[i])).join(' + ');
+      const rhs = products.map((c,i) => fmtCompound(c,coeffs[nR+i])).join(' + ');
+      $('#cb-out',root).innerHTML = `
+        <div class="result">
+          <div class="note-box" style="font-size:15px;font-weight:500;text-align:center;padding:16px;margin-bottom:12px">
+            ${esc(lhs)} → ${esc(rhs)}
+          </div>
+          <table class="kvtable"><tbody>
+            ${compounds.map((c,i) => `<tr><td>${c}</td><td><b>coefficient = ${coeffs[i]}</b></td></tr>`).join('')}
+          </tbody></table>
+        </div>`;
+    } catch(e) { $('#cb-out',root).innerHTML = errBox(e.message); }
+  };
+});
+
+/* ── IUPAC Name Helper ── */
+T('student', 'iupac-helper', 'IUPAC Name Helper', 'Generate IUPAC names for straight-chain and branched alkanes, alkenes, alkynes, alcohols and haloalkanes.', root => {
+  const prefixes = ['','meth','eth','prop','but','pent','hex','hept','oct','non','dec','undec','dodec','tridec','tetradec','pentadec','hexadec','heptadec','octadec','nonadec','icos'];
+  const multipliers = ['','di','tri','tetra','penta','hexa','hepta','octa','nona','deca'];
+
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Type</label>
+        <select class="fld" id="iu-type">
+          <option value="alkane">Alkane (CₙH₂ₙ₊₂)</option>
+          <option value="alkene">Alkene (CₙH₂ₙ)</option>
+          <option value="alkyne">Alkyne (CₙH₂ₙ₋₂)</option>
+          <option value="alcohol">Alcohol (–OH)</option>
+          <option value="halo">Haloalkane</option>
+          <option value="cyclo">Cycloalkane</option>
+        </select></div>
+      <div class="field"><label>Chain length (C atoms)</label>
+        <input class="fld" id="iu-n" type="number" min="1" max="20" value="6"></div>
+    </div>
+    <div id="iu-extra" class="field-row"></div>
+    <div class="row"><button class="btn primary" id="iu-go">Generate IUPAC Name</button></div>
+    <div id="iu-out"></div>
+    <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
+      <div class="io-label" style="margin-bottom:8px">Quick reference — functional group suffixes</div>
+      <table class="kvtable"><tbody>
+        <tr><td>Alkane</td><td><b>–ane</b></td><td>Single bonds only</td></tr>
+        <tr><td>Alkene</td><td><b>–ene</b></td><td>C=C double bond</td></tr>
+        <tr><td>Alkyne</td><td><b>–yne</b></td><td>C≡C triple bond</td></tr>
+        <tr><td>Alcohol</td><td><b>–ol</b></td><td>–OH group</td></tr>
+        <tr><td>Aldehyde</td><td><b>–al</b></td><td>–CHO at C1</td></tr>
+        <tr><td>Ketone</td><td><b>–one</b></td><td>C=O in chain</td></tr>
+        <tr><td>Carboxylic acid</td><td><b>–oic acid</b></td><td>–COOH at C1</td></tr>
+        <tr><td>Ester</td><td><b>–yl …oate</b></td><td>–COO–</td></tr>
+        <tr><td>Amine</td><td><b>–amine</b></td><td>–NH₂</td></tr>
+        <tr><td>Amide</td><td><b>–amide</b></td><td>–CONH₂</td></tr>
+        <tr><td>Fluoro–</td><td><b>fluoro–</b></td><td>F substituent</td></tr>
+        <tr><td>Chloro–</td><td><b>chloro–</b></td><td>Cl substituent</td></tr>
+        <tr><td>Bromo–</td><td><b>bromo–</b></td><td>Br substituent</td></tr>
+        <tr><td>Iodo–</td><td><b>iodo–</b></td><td>I substituent</td></tr>
+      </tbody></table>
+    </div>
+  </div>`;
+
+  const extraFields = {
+    alkene: `<div class="field"><label>Double bond position</label><input class="fld" id="iu-pos" type="number" min="1" value="1"></div>`,
+    alkyne: `<div class="field"><label>Triple bond position</label><input class="fld" id="iu-pos" type="number" min="1" value="1"></div>`,
+    alcohol: `<div class="field"><label>–OH position</label><input class="fld" id="iu-pos" type="number" min="1" value="1"></div>`,
+    halo: `<div class="field"><label>Halogen</label>
+      <select class="fld" id="iu-hal"><option>fluoro</option><option>chloro</option><option>bromo</option><option>iodo</option></select></div>
+      <div class="field"><label>Position</label><input class="fld" id="iu-pos" type="number" min="1" value="1"></div>`,
+  };
+
+  $('#iu-type',root).onchange = () => { $('#iu-extra',root).innerHTML = extraFields[$('#iu-type',root).value] || ''; };
+
+  $('#iu-go',root).onclick = () => {
+    const type = $('#iu-type',root).value;
+    const n = parseInt($('#iu-n',root).value);
+    const pos = parseInt($('#iu-pos',root)?.value || '1');
+    if (n < 1 || n > 20) { $('#iu-out',root).innerHTML = errBox('Chain length 1–20'); return; }
+    const base = prefixes[n];
+    let name = '', formula = '', rules = '';
+
+    if (type==='alkane') {
+      name = base + 'ane';
+      formula = `C${n}H${2*n+2}`;
+      rules = 'Suffix: -ane. No functional groups.';
+    } else if (type==='alkene') {
+      const p = Math.min(pos, Math.floor(n/2));
+      const suffix = n >= 4 ? `${p}-` : '';
+      name = base + suffix.replace(/^1-/,'') + (n>=4?'':'' ) + 'ene';
+      // Actually proper: hex-1-ene
+      name = n>=4 ? `${base}-${p}-ene` : `${base}ene`;
+      if (n===2) name='ethene'; if(n===3&&p===1)name='propene';
+      formula = `C${n}H${2*n}`;
+      rules = `Suffix: -ene. Number gives lowest locant to C=C. Double bond at C${p}–C${p+1}.`;
+    } else if (type==='alkyne') {
+      const p = Math.min(pos, Math.floor(n/2));
+      name = n>=4 ? `${base}-${p}-yne` : `${base}yne`;
+      if (n===2) name='ethyne'; if(n===3&&p===1)name='propyne';
+      formula = `C${n}H${2*n-2}`;
+      rules = `Suffix: -yne. Triple bond at C${p}–C${p+1}.`;
+    } else if (type==='alcohol') {
+      const p = Math.min(pos, n);
+      name = n>=4 ? `${base}-${p}-ol` : `${base}anol`.replace('methan-1-ol','methanol').replace('ethan-1-ol','ethanol');
+      if (n===1) name='methanol'; if(n===2)name='ethanol'; if(n===3&&p===1)name='propan-1-ol'; if(n===3&&p===2)name='propan-2-ol';
+      if (n>=4) name = `${base}an-${p}-ol`;
+      formula = `C${n}H${2*n+2}O`;
+      rules = `Suffix: -ol. –OH group at C${p}. Parent chain = longest C chain containing –OH.`;
+    } else if (type==='halo') {
+      const hal = $('#iu-hal',root).value;
+      const p = Math.min(pos, n);
+      name = n===1 ? `${hal}methane` : n===2 ? `${hal}ethane` : `${p}-${hal}${base}ane`;
+      formula = `C${n}H${2*n+1}X (X=${hal[0].toUpperCase()}${hal.slice(1,2)})`;
+      rules = `Prefix: ${hal}-. Halogen at C${p}. Give lowest possible locant.`;
+    } else if (type==='cyclo') {
+      name = `cyclo${base}ane`;
+      formula = `C${n}H${2*n}`;
+      rules = 'Prefix: cyclo-. Ring structure, suffix: -ane.';
+    }
+
+    $('#iu-out',root).innerHTML = `
+      <div class="result">
+        ${bigResult(stat(name,'IUPAC Name',true),stat(formula,'Molecular Formula'))}
+        <div class="note-box" style="margin-top:12px"><b>Naming rule:</b> ${rules}</div>
+      </div>`;
+  };
+});
+
+/* ── Periodic Table ── */
+T('student', 'periodic-table', 'Interactive Periodic Table', 'Click any element for full properties — atomic mass, config, electronegativity, state and more.', root => {
+  const EL = [
+    {n:1,s:'H',name:'Hydrogen',m:1.008,g:1,p:1,cat:'nonmetal',en:2.20,st:'Gas',config:'1s¹'},
+    {n:2,s:'He',name:'Helium',m:4.003,g:18,p:1,cat:'noble',en:null,st:'Gas',config:'1s²'},
+    {n:3,s:'Li',name:'Lithium',m:6.941,g:1,p:2,cat:'alkali',en:0.98,st:'Solid',config:'[He]2s¹'},
+    {n:4,s:'Be',name:'Beryllium',m:9.012,g:2,p:2,cat:'alkaline',en:1.57,st:'Solid',config:'[He]2s²'},
+    {n:5,s:'B',name:'Boron',m:10.811,g:13,p:2,cat:'metalloid',en:2.04,st:'Solid',config:'[He]2s²2p¹'},
+    {n:6,s:'C',name:'Carbon',m:12.011,g:14,p:2,cat:'nonmetal',en:2.55,st:'Solid',config:'[He]2s²2p²'},
+    {n:7,s:'N',name:'Nitrogen',m:14.007,g:15,p:2,cat:'nonmetal',en:3.04,st:'Gas',config:'[He]2s²2p³'},
+    {n:8,s:'O',name:'Oxygen',m:15.999,g:16,p:2,cat:'nonmetal',en:3.44,st:'Gas',config:'[He]2s²2p⁴'},
+    {n:9,s:'F',name:'Fluorine',m:18.998,g:17,p:2,cat:'halogen',en:3.98,st:'Gas',config:'[He]2s²2p⁵'},
+    {n:10,s:'Ne',name:'Neon',m:20.180,g:18,p:2,cat:'noble',en:null,st:'Gas',config:'[He]2s²2p⁶'},
+    {n:11,s:'Na',name:'Sodium',m:22.990,g:1,p:3,cat:'alkali',en:0.93,st:'Solid',config:'[Ne]3s¹'},
+    {n:12,s:'Mg',name:'Magnesium',m:24.305,g:2,p:3,cat:'alkaline',en:1.31,st:'Solid',config:'[Ne]3s²'},
+    {n:13,s:'Al',name:'Aluminium',m:26.982,g:13,p:3,cat:'post-transition',en:1.61,st:'Solid',config:'[Ne]3s²3p¹'},
+    {n:14,s:'Si',name:'Silicon',m:28.086,g:14,p:3,cat:'metalloid',en:1.90,st:'Solid',config:'[Ne]3s²3p²'},
+    {n:15,s:'P',name:'Phosphorus',m:30.974,g:15,p:3,cat:'nonmetal',en:2.19,st:'Solid',config:'[Ne]3s²3p³'},
+    {n:16,s:'S',name:'Sulfur',m:32.065,g:16,p:3,cat:'nonmetal',en:2.58,st:'Solid',config:'[Ne]3s²3p⁴'},
+    {n:17,s:'Cl',name:'Chlorine',m:35.453,g:17,p:3,cat:'halogen',en:3.16,st:'Gas',config:'[Ne]3s²3p⁵'},
+    {n:18,s:'Ar',name:'Argon',m:39.948,g:18,p:3,cat:'noble',en:null,st:'Gas',config:'[Ne]3s²3p⁶'},
+    {n:19,s:'K',name:'Potassium',m:39.098,g:1,p:4,cat:'alkali',en:0.82,st:'Solid',config:'[Ar]4s¹'},
+    {n:20,s:'Ca',name:'Calcium',m:40.078,g:2,p:4,cat:'alkaline',en:1.00,st:'Solid',config:'[Ar]4s²'},
+    {n:26,s:'Fe',name:'Iron',m:55.845,g:8,p:4,cat:'transition',en:1.83,st:'Solid',config:'[Ar]3d⁶4s²'},
+    {n:29,s:'Cu',name:'Copper',m:63.546,g:11,p:4,cat:'transition',en:1.90,st:'Solid',config:'[Ar]3d¹⁰4s¹'},
+    {n:30,s:'Zn',name:'Zinc',m:65.38,g:12,p:4,cat:'transition',en:1.65,st:'Solid',config:'[Ar]3d¹⁰4s²'},
+    {n:35,s:'Br',name:'Bromine',m:79.904,g:17,p:4,cat:'halogen',en:2.96,st:'Liquid',config:'[Ar]3d¹⁰4s²4p⁵'},
+    {n:36,s:'Kr',name:'Krypton',m:83.798,g:18,p:4,cat:'noble',en:3.00,st:'Gas',config:'[Ar]3d¹⁰4s²4p⁶'},
+    {n:47,s:'Ag',name:'Silver',m:107.87,g:11,p:5,cat:'transition',en:1.93,st:'Solid',config:'[Kr]4d¹⁰5s¹'},
+    {n:53,s:'I',name:'Iodine',m:126.90,g:17,p:5,cat:'halogen',en:2.66,st:'Solid',config:'[Kr]4d¹⁰5s²5p⁵'},
+    {n:79,s:'Au',name:'Gold',m:196.97,g:11,p:6,cat:'transition',en:2.54,st:'Solid',config:'[Xe]4f¹⁴5d¹⁰6s¹'},
+    {n:80,s:'Hg',name:'Mercury',m:200.59,g:12,p:6,cat:'transition',en:2.00,st:'Liquid',config:'[Xe]4f¹⁴5d¹⁰6s²'},
+    {n:82,s:'Pb',name:'Lead',m:207.20,g:14,p:6,cat:'post-transition',en:2.33,st:'Solid',config:'[Xe]4f¹⁴5d¹⁰6s²6p²'},
+    {n:92,s:'U',name:'Uranium',m:238.03,g:3,p:7,cat:'actinide',en:1.38,st:'Solid',config:'[Rn]5f³6d¹7s²'},
+  ];
+
+  const catColors = {
+    alkali:'#ff6b6b',alkaline:'#ffa94d',transition:'#74c0fc',
+    'post-transition':'#a9e34b',metalloid:'#63e6be',nonmetal:'#ffe066',
+    halogen:'#da77f2',noble:'#66d9e8',actinide:'#f783ac',lanthanide:'#e599f7'
+  };
+
+  root.innerHTML = `<div class="tool-body">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;font-size:11px">
+      ${Object.entries(catColors).map(([cat,col])=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:${col};display:inline-block"></span>${cat}</span>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:2px;margin-bottom:16px" id="pt-grid"></div>
+    <div id="pt-detail" style="display:none"></div>
+    <div class="note-box">Showing common elements. Click any element for full details.</div>
+  </div>`;
+
+  const grid = $('#pt-grid',root);
+  // Build 18×7 grid
+  const cells = Array.from({length:7*18}, () => null);
+  EL.forEach(el => { const idx=(el.p-1)*18+(el.g-1); cells[idx]=el; });
+
+  grid.innerHTML = cells.map((el,i) => el
+    ? `<div title="${el.name}" data-z="${el.n}" style="background:${catColors[el.cat]||'#ddd'};border-radius:3px;padding:2px;cursor:pointer;text-align:center;min-height:36px;display:flex;flex-direction:column;justify-content:center;align-items:center" class="pt-cell">
+        <div style="font-size:8px;color:rgba(0,0,0,0.6)">${el.n}</div>
+        <div style="font-size:11px;font-weight:600;color:#000">${el.s}</div>
+       </div>`
+    : `<div style="min-height:36px"></div>`
+  ).join('');
+
+  grid.querySelectorAll('.pt-cell').forEach(cell => cell.onclick = () => {
+    const z = parseInt(cell.dataset.z);
+    const el = EL.find(e => e.n===z);
+    if (!el) return;
+    const detail = $('#pt-detail',root);
+    detail.style.display = '';
+    detail.innerHTML = `<div class="result" style="border-left:4px solid ${catColors[el.cat]||'#ddd'}">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        <div style="width:60px;height:60px;background:${catColors[el.cat]};border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:10px;color:rgba(0,0,0,0.6)">${el.n}</div>
+          <div style="font-size:22px;font-weight:700;color:#000">${el.s}</div>
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:500">${el.name}</div>
+          <div class="subtle">${el.cat}</div>
+        </div>
+      </div>
+      <table class="kvtable"><tbody>
+        <tr><td>Atomic number</td><td><b>${el.n}</b></td></tr>
+        <tr><td>Atomic mass</td><td><b>${el.m} u</b></td></tr>
+        <tr><td>Period</td><td><b>${el.p}</b></td></tr>
+        <tr><td>Group</td><td><b>${el.g}</b></td></tr>
+        <tr><td>Electron config</td><td><b>${el.config}</b></td></tr>
+        <tr><td>Electronegativity</td><td><b>${el.en ?? '—'} (Pauling)</b></td></tr>
+        <tr><td>State at STP</td><td><b>${el.st}</b></td></tr>
+        <tr><td>Category</td><td><b>${el.cat}</b></td></tr>
+      </tbody></table>
+    </div>`;
+    detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+  });
+});
+
+/* ── Physics Formula Reference ── */
+T('student', 'physics-formulas', 'Physics Formula Reference', 'Searchable reference of 100+ physics formulas — mechanics, optics, thermodynamics, electrostatics, waves.', root => {
+  const FORMULAS = [
+    // Mechanics
+    {topic:'Mechanics',name:'Newton\'s 2nd Law',f:'F = ma',vars:'F=force(N), m=mass(kg), a=acceleration(m/s²)'},
+    {topic:'Mechanics',name:'Kinematic — velocity',f:'v = u + at',vars:'v=final vel, u=initial vel, a=accel, t=time'},
+    {topic:'Mechanics',name:'Kinematic — displacement',f:'s = ut + ½at²',vars:'s=displacement(m)'},
+    {topic:'Mechanics',name:'Kinematic — v²',f:'v² = u² + 2as',vars:'time-independent'},
+    {topic:'Mechanics',name:'Kinematic — avg displacement',f:'s = (u+v)t/2',vars:''},
+    {topic:'Mechanics',name:'Weight',f:'W = mg',vars:'g=9.8 m/s²'},
+    {topic:'Mechanics',name:'Momentum',f:'p = mv',vars:'p=momentum(kg·m/s)'},
+    {topic:'Mechanics',name:'Impulse',f:'J = FΔt = Δp',vars:'J=impulse(N·s)'},
+    {topic:'Mechanics',name:'Work',f:'W = Fd cosθ',vars:'W=work(J), θ=angle with displacement'},
+    {topic:'Mechanics',name:'Kinetic Energy',f:'KE = ½mv²',vars:'KE in Joules'},
+    {topic:'Mechanics',name:'Potential Energy (gravitational)',f:'PE = mgh',vars:'h=height(m)'},
+    {topic:'Mechanics',name:'Power',f:'P = W/t = Fv',vars:'P=power(W)'},
+    {topic:'Mechanics',name:'Efficiency',f:'η = (P_out/P_in) × 100%',vars:''},
+    {topic:'Mechanics',name:'Centripetal acceleration',f:'a_c = v²/r = ω²r',vars:'r=radius, ω=angular velocity'},
+    {topic:'Mechanics',name:'Centripetal force',f:'F_c = mv²/r',vars:''},
+    {topic:'Mechanics',name:'Angular velocity',f:'ω = 2πf = 2π/T',vars:'f=frequency, T=period'},
+    {topic:'Mechanics',name:'Torque',f:'τ = rF sinθ',vars:'τ=torque(N·m)'},
+    {topic:'Mechanics',name:'Moment of inertia (point)',f:'I = mr²',vars:''},
+    {topic:'Mechanics',name:'Angular momentum',f:'L = Iω',vars:'L=angular momentum'},
+    {topic:'Mechanics',name:'Universal Gravitation',f:'F = Gm₁m₂/r²',vars:'G=6.674×10⁻¹¹ N·m²/kg²'},
+    {topic:'Mechanics',name:'Gravitational PE',f:'U = -Gm₁m₂/r',vars:''},
+    {topic:'Mechanics',name:'Escape velocity',f:'v_e = √(2GM/R)',vars:'M=planet mass, R=radius'},
+    // Waves & Oscillations
+    {topic:'Waves',name:'Wave speed',f:'v = fλ',vars:'f=frequency(Hz), λ=wavelength(m)'},
+    {topic:'Waves',name:'Period & frequency',f:'T = 1/f',vars:'T=period(s)'},
+    {topic:'Waves',name:'Simple pendulum period',f:'T = 2π√(L/g)',vars:'L=length(m)'},
+    {topic:'Waves',name:'Spring-mass period',f:'T = 2π√(m/k)',vars:'k=spring constant(N/m)'},
+    {topic:'Waves',name:'Hooke\'s Law',f:'F = -kx',vars:'x=extension(m)'},
+    {topic:'Waves',name:'Elastic PE (spring)',f:'U = ½kx²',vars:''},
+    {topic:'Waves',name:'Doppler effect (source moving)',f:'f\' = f(v ± v_o)/(v ∓ v_s)',vars:'v=sound speed, v_o=observer speed, v_s=source speed'},
+    {topic:'Waves',name:'Intensity',f:'I = P/A',vars:'I=intensity(W/m²), A=area'},
+    {topic:'Waves',name:'Decibel',f:'β = 10 log(I/I₀)',vars:'I₀=10⁻¹² W/m²'},
+    // Thermodynamics
+    {topic:'Thermodynamics',name:'Ideal Gas Law',f:'PV = nRT',vars:'P=pressure(Pa), V=volume(m³), n=moles, R=8.314 J/mol·K, T=temp(K)'},
+    {topic:'Thermodynamics',name:'Combined Gas Law',f:'P₁V₁/T₁ = P₂V₂/T₂',vars:''},
+    {topic:'Thermodynamics',name:'First Law of Thermodynamics',f:'ΔU = Q - W',vars:'ΔU=internal energy, Q=heat added, W=work done by system'},
+    {topic:'Thermodynamics',name:'Heat capacity',f:'Q = mcΔT',vars:'c=specific heat capacity(J/kg·K)'},
+    {topic:'Thermodynamics',name:'Latent heat',f:'Q = mL',vars:'L=latent heat(J/kg)'},
+    {topic:'Thermodynamics',name:'Efficiency (heat engine)',f:'η = 1 - T_C/T_H',vars:'T_C=cold reservoir, T_H=hot reservoir (K)'},
+    {topic:'Thermodynamics',name:'Entropy change',f:'ΔS = Q_rev/T',vars:'S=entropy(J/K)'},
+    {topic:'Thermodynamics',name:'Kinetic theory avg KE',f:'KE_avg = (3/2)k_BT',vars:'k_B=1.38×10⁻²³ J/K'},
+    {topic:'Thermodynamics',name:'Stefan-Boltzmann',f:'P = εσAT⁴',vars:'σ=5.67×10⁻⁸ W/m²K⁴, ε=emissivity'},
+    // Electrostatics & Current
+    {topic:'Electrostatics',name:'Coulomb\'s Law',f:'F = kq₁q₂/r²',vars:'k=8.99×10⁹ N·m²/C²'},
+    {topic:'Electrostatics',name:'Electric field',f:'E = F/q = kQ/r²',vars:'E in N/C or V/m'},
+    {topic:'Electrostatics',name:'Electric potential',f:'V = kQ/r',vars:'V=volts'},
+    {topic:'Electrostatics',name:'Potential energy',f:'U = qV = kq₁q₂/r',vars:''},
+    {topic:'Electrostatics',name:'Capacitance',f:'C = Q/V',vars:'C=capacitance(F)'},
+    {topic:'Electrostatics',name:'Parallel plate capacitor',f:'C = ε₀A/d',vars:'ε₀=8.85×10⁻¹² F/m'},
+    {topic:'Electrostatics',name:'Energy stored in capacitor',f:'U = ½CV² = Q²/2C',vars:''},
+    {topic:'Electrostatics',name:'Ohm\'s Law',f:'V = IR',vars:'V=voltage(V), I=current(A), R=resistance(Ω)'},
+    {topic:'Electrostatics',name:'Electric power',f:'P = IV = I²R = V²/R',vars:''},
+    {topic:'Electrostatics',name:'Resistors in series',f:'R_eq = R₁+R₂+…',vars:''},
+    {topic:'Electrostatics',name:'Resistors in parallel',f:'1/R_eq = 1/R₁+1/R₂+…',vars:''},
+    {topic:'Electrostatics',name:'Kirchhoff\'s Voltage Law',f:'ΣV = 0 (closed loop)',vars:''},
+    {topic:'Electrostatics',name:'Kirchhoff\'s Current Law',f:'ΣI_in = ΣI_out',vars:''},
+    // Magnetism
+    {topic:'Magnetism',name:'Lorentz force',f:'F = q(v × B)',vars:'B=magnetic field(T)'},
+    {topic:'Magnetism',name:'Force on current',f:'F = BIL sinθ',vars:'L=wire length(m)'},
+    {topic:'Magnetism',name:'Magnetic field (long wire)',f:'B = μ₀I/2πr',vars:'μ₀=4π×10⁻⁷ T·m/A'},
+    {topic:'Magnetism',name:'Faraday\'s Law',f:'EMF = -dΦ/dt',vars:'Φ=magnetic flux(Wb)'},
+    {topic:'Magnetism',name:'Magnetic flux',f:'Φ = BA cosθ',vars:''},
+    {topic:'Magnetism',name:'Inductance EMF',f:'EMF = -L(dI/dt)',vars:'L=inductance(H)'},
+    // Optics
+    {topic:'Optics',name:'Snell\'s Law',f:'n₁sinθ₁ = n₂sinθ₂',vars:'n=refractive index'},
+    {topic:'Optics',name:'Critical angle',f:'sinθ_c = n₂/n₁',vars:'For total internal reflection'},
+    {topic:'Optics',name:'Lens formula',f:'1/f = 1/v - 1/u',vars:'f=focal length, v=image dist, u=object dist'},
+    {topic:'Optics',name:'Magnification',f:'m = v/u = h_i/h_o',vars:'h=height'},
+    {topic:'Optics',name:'Mirror formula',f:'1/f = 1/v + 1/u',vars:''},
+    {topic:'Optics',name:'Power of lens',f:'P = 1/f',vars:'P in diopters(D), f in metres'},
+    {topic:'Optics',name:'Diffraction grating',f:'d sinθ = mλ',vars:'d=grating spacing, m=order'},
+    {topic:'Optics',name:'de Broglie wavelength',f:'λ = h/mv',vars:'h=6.626×10⁻³⁴ J·s'},
+    // Modern Physics
+    {topic:'Modern Physics',name:'Photoelectric effect',f:'KE_max = hf - φ',vars:'h=Planck const, f=frequency, φ=work function'},
+    {topic:'Modern Physics',name:'Energy of photon',f:'E = hf = hc/λ',vars:'c=3×10⁸ m/s'},
+    {topic:'Modern Physics',name:'Bohr radius (H)',f:'r_n = n²a₀',vars:'a₀=0.529 Å'},
+    {topic:'Modern Physics',name:'Mass-energy equivalence',f:'E = mc²',vars:'c=3×10⁸ m/s'},
+    {topic:'Modern Physics',name:'Radioactive decay',f:'N = N₀e^(-λt)',vars:'λ=decay constant'},
+    {topic:'Modern Physics',name:'Half-life',f:'t₁/₂ = ln2/λ = 0.693/λ',vars:''},
+    {topic:'Modern Physics',name:'Heisenberg uncertainty',f:'ΔxΔp ≥ ℏ/2',vars:'ℏ=h/2π=1.055×10⁻³⁴ J·s'},
+  ];
+
+  const topics = [...new Set(FORMULAS.map(f=>f.topic))];
+  const topicColors = {Mechanics:'#74c0fc',Waves:'#63e6be',Thermodynamics:'#ffa94d',Electrostatics:'#da77f2',Magnetism:'#ff6b6b',Optics:'#ffe066','Modern Physics':'#a9e34b'};
+
+  root.innerHTML = `<div class="tool-body">
+    <div class="field"><input class="fld" id="pf-search" placeholder="Search formulas… e.g. kinetic energy, Snell, ideal gas" spellcheck="false"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0">
+      <button class="btn sm ghost pf-cat active" data-cat="">All</button>
+      ${topics.map(t=>`<button class="btn sm ghost pf-cat" data-cat="${t}" style="border-color:${topicColors[t]||'var(--line)'}">${t}</button>`).join('')}
+    </div>
+    <div id="pf-out"></div>
+  </div>`;
+
+  let activeCat = '';
+  const render = (q='') => {
+    const lower = q.toLowerCase();
+    const filtered = FORMULAS.filter(f =>
+      (!activeCat || f.topic===activeCat) &&
+      (!q || f.name.toLowerCase().includes(lower) || f.f.toLowerCase().includes(lower) || f.topic.toLowerCase().includes(lower) || f.vars.toLowerCase().includes(lower))
+    );
+    const byTopic = {};
+    filtered.forEach(f => { (byTopic[f.topic]=byTopic[f.topic]||[]).push(f); });
+    $('#pf-out',root).innerHTML = Object.entries(byTopic).map(([topic,fmls])=>`
+      <div style="margin-bottom:16px">
+        <div style="font-weight:500;font-size:13px;color:${topicColors[topic]||'var(--accent)'};margin-bottom:6px;display:flex;align-items:center;gap:6px">
+          <span style="width:10px;height:10px;border-radius:2px;background:${topicColors[topic]||'#ddd'};display:inline-block"></span>${topic}
+        </div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">${fmls.map(f=>`
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:8px 6px;color:var(--text-secondary);width:30%">${f.name}</td>
+            <td style="padding:8px 6px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--accent)">${esc(f.f)}</td>
+            <td style="padding:8px 6px;font-size:11px;color:var(--muted)">${esc(f.vars)}</td>
+          </tr>`).join('')}
+        </table>
+      </div>`).join('') || '<div class="empty-note">No formulas match your search.</div>';
+  };
+
+  $('#pf-search',root).addEventListener('input', e => render(e.target.value));
+  root.querySelectorAll('.pf-cat').forEach(b => b.onclick = () => {
+    root.querySelectorAll('.pf-cat').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); activeCat = b.dataset.cat;
+    render($('#pf-search',root).value);
+  });
+  render();
+});
+
+
 /* ---------------- SEO & WEB ---------------- */
 T('seo', 'meta-tags', 'Meta Tag Generator', 'Title, description & viewport tags.', root => calcTool(root, {
   button: 'Generate', auto: true,
