@@ -1192,6 +1192,7 @@ function buildHome() {
       </div>
     </div>
     </div>
+    <div id="tools-grid">
     <div class="home-cat-grid">
     <div class="cat-pills">
       <button class="cat-pill active" data-cat="all" onclick="filterCat('all')">All</button>
@@ -1208,6 +1209,7 @@ function buildHome() {
         ${cardGrid(items)}
       </section>`;
     }).join('')}
+    </div>
     </div>
     <footer class="home-footer">
       <div class="home-footer-inner">
@@ -1234,8 +1236,32 @@ function buildHome() {
 
 function renderSearch(q) {
   const items = TOOLS.filter(t => (t.name + t.desc + t.cat).toLowerCase().includes(q.toLowerCase()));
-  // crumb removed
-  view.innerHTML = items.length ? cardGrid(items) : `<div class="empty-note">Nothing found for “${esc(q)}”.</div>`;
+  const grid = document.getElementById('tools-grid');
+  if (grid) {
+    grid.innerHTML = items.length
+      ? `<div class="home-cat-grid" style="padding-top:8px">${cardGrid(items)}</div>`
+      : `<div class="empty-note">Nothing found for "${esc(q)}".</div>`;
+  } else {
+    view.innerHTML = items.length ? cardGrid(items) : `<div class="empty-note">Nothing found for "${esc(q)}".</div>`;
+  }
+}
+
+function restoreToolsGrid() {
+  const grid = document.getElementById('tools-grid');
+  if (!grid) return;
+  grid.innerHTML = `<div class="home-cat-grid">
+    <div class="cat-pills">
+      <button class="cat-pill active" data-cat="all" onclick="filterCat('all')">All</button>
+      ${CATS.map(c => `<button class="cat-pill" data-cat="${c.id}" onclick="filterCat('${c.id}')">${c.ic} ${c.name}</button>`).join('')}
+    </div>
+    ${CATS.map(c => {
+      const items = TOOLS.filter(t => t.cat === c.id);
+      return `<section class="home-cat" data-cat="${c.id}">
+        <div class="home-cat-head"><span class="cat-ic">${c.ic}</span><h2>${c.name}</h2><span>${items.length} tools</span></div>
+        ${cardGrid(items)}
+      </section>`;
+    }).join('')}
+    </div>`;
 }
 
 function attachSearchListener() {
@@ -1244,12 +1270,8 @@ function attachSearchListener() {
   searchInput._searchBound = true;
   searchInput.addEventListener('input', e => {
     const q = e.target.value.trim();
-    if (q) {
-      renderSearch(q);
-    } else {
-      buildHome();
-      attachSearchListener();
-    }
+    if (q) renderSearch(q);
+    else restoreToolsGrid();
   });
   initTypewriter();
 }
@@ -1312,8 +1334,7 @@ if (IN_TOOLS) {
       const s = document.getElementById('home-search');
       if (s && document.activeElement === s) {
         s.value = '';
-        buildHome();
-        setTimeout(() => attachSearchListener(), 100);
+        restoreToolsGrid();
         s.blur();
       }
     }
