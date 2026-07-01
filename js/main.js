@@ -915,6 +915,67 @@ T('finance', 'margin', 'Margin Calculator', 'Profit, margin & markup.', root => 
   fields: [{ id: 'cost', label: 'Cost (₹)', value: 800 }, { id: 'price', label: 'Selling price (₹)', value: 1000 }],
   compute: v => { const c = num(v.cost), p = num(v.price), profit = p - c; if (!p) return errBox('Enter price'); return bigResult(stat(money(profit), 'Profit', true), stat(fmt(profit / p * 100) + '%', 'Margin'), stat(c ? fmt(profit / c * 100) + '%' : '—', 'Markup')); },
 }));
+T('finance', 'income-tax-calculator', 'Income Tax Calculator (Old vs New Regime)', 'Compare Old vs New tax regime, FY 2025-26 (AY 2026-27).', root => calcTool(root, {
+  button: 'Compare', auto: true,
+  fields: [
+    { id: 'gross', label: 'Gross Total Income (₹)', value: 900000 },
+    { id: 'age', label: 'Age (years)', value: 30 },
+    { id: 'ded80c', label: '80C Investments (₹)', value: 0 },
+    { id: 'ded80d', label: '80D Health Insurance (₹)', value: 0 },
+    { id: 'hra', label: 'HRA Exemption (₹)', value: 0 },
+    { id: 'homeloan', label: 'Home Loan Interest 24b (₹)', value: 0 },
+    { id: 'nps', label: 'NPS 80CCD(1B) (₹)', value: 0 },
+    { id: 'other', label: 'Other Deductions (₹)', value: 0 },
+  ],
+  compute: v => {
+    const gross = num(v.gross), age = num(v.age);
+    if (!gross) return errBox('Enter gross total income');
+    const ded80c = Math.min(num(v.ded80c), 150000);
+    const ded80d = num(v.ded80d);
+    const hra = num(v.hra);
+    const homeloan = Math.min(num(v.homeloan), 200000);
+    const nps = Math.min(num(v.nps), 50000);
+    const other = num(v.other);
+    const exemption = age >= 80 ? 500000 : age >= 60 ? 300000 : 250000;
+
+    function slabNew(income) {
+      const slabs = [[400000, 0], [800000, 0.05], [1200000, 0.10], [1600000, 0.15], [2000000, 0.20], [2400000, 0.25], [Infinity, 0.30]];
+      let tax = 0, prev = 0;
+      for (const [limit, rate] of slabs) { if (income > prev) { tax += (Math.min(income, limit) - prev) * rate; prev = limit; } else break; }
+      return tax;
+    }
+    function slabOld(income, exemption) {
+      if (income <= exemption) return 0;
+      let tax = Math.max(0, Math.min(income, 500000) - exemption) * 0.05;
+      if (income > 500000) tax += (Math.min(income, 1000000) - 500000) * 0.20;
+      if (income > 1000000) tax += (income - 1000000) * 0.30;
+      return tax;
+    }
+
+    const stdNew = 75000;
+    const taxableNew = Math.max(0, gross - stdNew);
+    let taxNew = slabNew(taxableNew);
+    if (taxableNew <= 1200000) taxNew = 0;
+    const finalNew = Math.round(taxNew * 1.04);
+
+    const stdOld = 50000;
+    const totalDed = ded80c + ded80d + hra + homeloan + nps + other + stdOld;
+    const taxableOld = Math.max(0, gross - totalDed);
+    let taxOld = slabOld(taxableOld, exemption);
+    if (taxableOld <= 500000) taxOld = 0;
+    const finalOld = Math.round(taxOld * 1.04);
+
+    const winner = finalNew <= finalOld ? 'New Regime' : 'Old Regime';
+    const savings = Math.abs(finalNew - finalOld);
+
+    return bigResult(
+      stat(winner, 'Better Regime', true),
+      stat(money(savings), 'You Save'),
+      stat(money(finalOld), 'Old Regime Tax'),
+      stat(money(finalNew), 'New Regime Tax')
+    );
+  },
+}));
 T('finance', 'salary', 'Salary Converter', 'Hourly ⇄ daily ⇄ monthly ⇄ yearly.', root => calcTool(root, {
   button: 'Convert', auto: true,
   fields: [{ id: 'rate', label: 'Hourly rate (₹)', value: 500 }, { id: 'hpd', label: 'Hours / day', value: 8 }, { id: 'dpw', label: 'Days / week', value: 5 }],
