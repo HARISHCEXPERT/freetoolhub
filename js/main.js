@@ -2361,6 +2361,113 @@ T('seo', 'product-schema', 'Product Schema', 'Product JSON-LD with offer.', root
   fields: [{ id: 'name', label: 'Product name', type: 'text', value: 'Wireless Headphones' }, { id: 'desc', label: 'Description', type: 'text', value: 'Noise-cancelling over-ear headphones.' }, { id: 'price', label: 'Price', type: 'text', value: '4999' }, { id: 'cur', label: 'Currency', type: 'text', value: 'INR' }, { id: 'img', label: 'Image URL', type: 'text', value: 'https://example.com/p.jpg' }],
   compute: v => { const data = { '@context': 'https://schema.org', '@type': 'Product', name: v.name, description: v.desc, image: v.img, offers: { '@type': 'Offer', price: v.price, priceCurrency: v.cur, availability: 'https://schema.org/InStock' } }; return outBlock('<script type="application/ld+json">\n' + JSON.stringify(data, null, 2) + '\n</' + 'script>', 'prodout', 'product-schema.html', false); },
 }));
+T('seo', 'serp-preview', 'SERP Snippet Preview', 'See how your page looks in Google search results — with live pixel-width and character checks.', root => {
+  root.innerHTML = `<div class="tool-body">
+    <div class="field-row">
+      <div class="field"><label>Page Title <span class="hint" id="sp-title-count">0 / 60</span></label>
+        <input class="fld" id="sp-title" placeholder="e.g. Free Online Tools — No Login Required | FreeToolHub" spellcheck="false" value="Free Online Tools — No Login Required | FreeToolHub"></div>
+      <div class="field"><label>URL</label>
+        <input class="fld" id="sp-url" placeholder="e.g. https://freetoolhub.app/tools/json-formatter" spellcheck="false" value="https://freetoolhub.app/tools/json-formatter"></div>
+      <div class="field" style="grid-column:1/-1"><label>Meta Description <span class="hint" id="sp-desc-count">0 / 160</span></label>
+        <textarea class="ta wrap" id="sp-desc" style="min-height:80px" placeholder="A short, compelling summary of the page…" spellcheck="false">Beautify JSON, convert to CSV/XML, validate and minify — free online, no login, nothing ever leaves your browser.</textarea></div>
+    </div>
+
+    <div class="row" style="margin:4px 0 16px">
+      <button class="btn sm ghost active" id="sp-mode-desktop" data-mode="desktop">🖥 Desktop</button>
+      <button class="btn sm ghost" id="sp-mode-mobile" data-mode="mobile">📱 Mobile</button>
+    </div>
+
+    <div class="io-label" style="margin-bottom:8px">Google Preview</div>
+    <div id="sp-preview" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 24px;font-family:arial,sans-serif;max-width:600px"></div>
+
+    <div id="sp-warnings" style="margin-top:16px"></div>
+    <div class="note-box" style="margin-top:12px">Google typically shows ~55–60 characters of title (~580px) and ~150–160 characters of description (~920px) on desktop before truncating with "…". Actual cutoff varies by device, font rendering and query — treat this as a close estimate, not a guarantee.</div>
+  </div>`;
+
+  let mode = 'desktop';
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  const pxWidth = (text, px, weight = '400') => {
+    ctx.font = `${weight} ${px}px arial`;
+    return ctx.measureText(text).width;
+  };
+
+  const truncateToWidth = (text, maxPx, px, weight) => {
+    if (pxWidth(text, px, weight) <= maxPx) return text;
+    let lo = 0, hi = text.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (pxWidth(text.slice(0, mid) + '…', px, weight) <= maxPx) lo = mid; else hi = mid - 1;
+    }
+    return text.slice(0, lo).trim() + '…';
+  };
+
+  const setMode = m => {
+    mode = m;
+    $('#sp-mode-desktop', root).classList.toggle('active', m === 'desktop');
+    $('#sp-mode-mobile', root).classList.toggle('active', m === 'mobile');
+    render();
+  };
+  $('#sp-mode-desktop', root).onclick = () => setMode('desktop');
+  $('#sp-mode-mobile', root).onclick = () => setMode('mobile');
+
+  const render = () => {
+    const rawTitle = $('#sp-title', root).value || '(untitled page)';
+    const rawDesc = $('#sp-desc', root).value || '';
+    let rawUrl = $('#sp-url', root).value || 'https://example.com';
+    if (!/^https?:\/\//i.test(rawUrl)) rawUrl = 'https://' + rawUrl;
+
+    let host = '', path = '';
+    try {
+      const u = new URL(rawUrl);
+      host = u.hostname.replace(/^www\./, '');
+      path = u.pathname.split('/').filter(Boolean).join(' › ');
+    } catch { host = rawUrl; }
+
+    $('#sp-title-count', root).textContent = `${rawTitle.length} / 60`;
+    $('#sp-title-count', root).style.color = rawTitle.length > 60 ? 'var(--err,#e5484d)' : rawTitle.length < 30 ? 'var(--muted,#888)' : 'var(--ok,#2ba84a)';
+    $('#sp-desc-count', root).textContent = `${rawDesc.length} / 160`;
+    $('#sp-desc-count', root).style.color = rawDesc.length > 160 ? 'var(--err,#e5484d)' : rawDesc.length < 70 ? 'var(--muted,#888)' : 'var(--ok,#2ba84a)';
+
+    const isMobile = mode === 'mobile';
+    const titlePx = isMobile ? 20 : 20;
+    const titleMaxWidth = isMobile ? 340 : 600;
+    const descPx = isMobile ? 14 : 14;
+    const descMaxWidth = isMobile ? 340 : 600;
+
+    const shownTitle = truncateToWidth(esc(rawTitle), titleMaxWidth, titlePx, '400');
+    const shownDesc = truncateToWidth(esc(rawDesc), descMaxWidth * 2, descPx, '400'); // desc wraps to ~2 lines
+
+    const previewWidth = isMobile ? '360px' : '600px';
+    $('#sp-preview', root).style.maxWidth = previewWidth;
+    $('#sp-preview', root).innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="width:28px;height:28px;border-radius:50%;background:#f1f3f4;display:flex;align-items:center;justify-content:center;font-size:14px;color:#5f6368;flex-shrink:0">🌐</div>
+        <div style="overflow:hidden">
+          <div style="color:#202124;font-size:14px;line-height:1.3">${esc(host)}</div>
+          <div style="color:#4d5156;font-size:12px;line-height:1.3">${esc(rawUrl.replace(/^https?:\/\//, ''))}</div>
+        </div>
+      </div>
+      <div style="color:#1a0dab;font-size:${isMobile ? 18 : 20}px;line-height:1.3;margin-bottom:3px;font-family:arial,sans-serif;${isMobile ? '' : 'max-width:600px'}">${shownTitle}</div>
+      <div style="color:#4d5156;font-size:${isMobile ? 13 : 14}px;line-height:1.5;font-family:arial,sans-serif">${shownDesc}</div>
+    `;
+
+    const warnings = [];
+    if (rawTitle.length > 60) warnings.push('Title may get truncated in search results — try trimming it under ~60 characters.');
+    if (rawTitle.length < 15) warnings.push('Title looks quite short — consider making it more descriptive.');
+    if (rawDesc.length > 160) warnings.push('Meta description may get truncated — aim for under ~160 characters.');
+    if (rawDesc.length < 50 && rawDesc.length > 0) warnings.push('Meta description is short — Google may replace it with auto-generated text from the page.');
+    if (!rawDesc) warnings.push('No meta description set — Google will auto-generate a snippet from page content.');
+
+    $('#sp-warnings', root).innerHTML = warnings.length
+      ? warnings.map(w => `<div class="status err" style="margin-top:6px">⚠ ${esc(w)}</div>`).join('')
+      : `<div class="status ok">✓ Title and description are within Google's typical display limits</div>`;
+  };
+
+  ['sp-title', 'sp-url', 'sp-desc'].forEach(id => $('#' + id, root).addEventListener('input', render));
+  render();
+});
 
 /* ---------------- IMAGE (canvas) ---------------- */
 function imagePicker(root, onImg) {
