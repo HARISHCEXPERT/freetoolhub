@@ -3179,7 +3179,7 @@ function buildHome() {
           </svg>
           <span>FreeToolHub</span>
         </div>
-        <p class="home-footer-desc">81+ free browser-based tools. No login, no data collection, works offline.</p>
+        <p class="home-footer-desc">100+ free browser-based tools. No login, no data collection, works offline.</p>
         <div class="home-footer-links">
           <a href="about.html">About</a>
           <a href="privacy.html">Privacy Policy</a>
