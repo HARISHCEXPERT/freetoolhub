@@ -36,6 +36,6 @@ Image Resizer, Image Compressor, Image Format Converter, Rotate & Flip, Grayscal
 
 ## Links
 - Homepage: https://freetoolhub.app
-- About: https://freetoolhub.app/about.html
-- Privacy Policy: https://freetoolhub.app/privacy.html
+- About: https://freetoolhub.app/about
+- Privacy Policy: https://freetoolhub.app/privacy
 - Dev.to Article: https://dev.to/harishcexpert/i-built-81-free-browser-based-tools-in-vanilla-js-no-login-no-server-no-bs-563m

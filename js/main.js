@@ -3057,8 +3057,8 @@ T('pdf', 'images-to-pdf', 'Images to PDF', 'Convert JPG/PNG images into a single
 const byId = id => TOOLS.find(t => t.id === id);
 const IN_TOOLS = !!document.body.dataset.tool || /\/tools\//.test(location.pathname);
 const CURRENT  = document.body.dataset.tool || '';
-const toolHref = id => (IN_TOOLS ? '' : 'tools/') + id + '.html';
-const homeHref = () => IN_TOOLS ? '../index.html' : 'index.html';
+const toolHref = id => '/tools/' + id;
+const homeHref = () => '/';
 
 /* expose registry so other scripts/pages can introspect */
 window.Toolbox = { TOOLS, CATS, byId };
@@ -3074,9 +3074,9 @@ host.innerHTML = `
           <span class="brand-name">FreeToolHub</span>
         </a>
         <div class="topbar-links">
-          <a class="ghost-link" href="${homeHref().replace('index.html','')}about.html">About</a>
-          <a class="ghost-link" href="${homeHref().replace('index.html','')}privacy.html">Privacy</a>
-          <a class="ghost-link" href="${homeHref().replace('index.html','')}terms.html">Terms</a>
+          <a class="ghost-link" href="/about">About</a>
+          <a class="ghost-link" href="/privacy">Privacy</a>
+          <a class="ghost-link" href="/terms">Terms</a>
           <span class="topbar-divider"></span>
           <a class="ghost-link" id="random-tool">Surprise me ↗</a>
           <button id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
@@ -3181,9 +3181,9 @@ function buildHome() {
         </div>
         <p class="home-footer-desc">100+ free browser-based tools. No login, no data collection, works offline.</p>
         <div class="home-footer-links">
-          <a href="about.html">About</a>
-          <a href="privacy.html">Privacy Policy</a>
-          <a href="terms.html">Terms of Service</a>
+          <a href="/about">About</a>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
           <a href="mailto:hello@freetoolhub.app">Contact</a>
         </div>
         <div class="home-footer-copy">© 2025 FreeToolHub.app · All tools free forever</div>
