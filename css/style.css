@@ -911,3 +911,54 @@ pre.code {
   color: white;
   font-weight: 600;
 }
+/* ---------- Static crawlable nav (progressive-enhancement fallback) ---------- */
+/* Present in raw HTML on every page for crawlers/no-JS; removed by main.js once
+   the app-shell topbar has mounted, so JS-capable browsers never see duplicate nav. */
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.page-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+}
+.page-nav-links { display: flex; align-items: center; gap: 4px; }
+.page-nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: .12s;
+}
+.page-nav-links a:hover { color: var(--accent); background: var(--accent-soft); }
+.page-nav-active { color: var(--accent-ink) !important; background: var(--accent-soft) !important; }
+@media (max-width: 600px) {
+  .page-nav-links a:not(.page-nav-active) { display: none; }
+}
+
+/* ---------- Related tools (static internal-linking block) ---------- */
+.seo-block.related-tools h2 { margin-bottom: 10px; }
+.related-tools-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.related-tools-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 6px 14px;
+  transition: .12s;
+}
+.related-tools-links a:hover { color: var(--accent-ink); background: var(--accent-soft); border-color: var(--accent); }

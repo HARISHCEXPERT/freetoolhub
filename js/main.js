@@ -3474,3 +3474,13 @@ function initTypewriter() {
   }
   setTimeout(type, 1000);
 }
+/* ---------------------------------------------------------------
+   Remove the static, no-JS crawlable nav once the real app-shell
+   topbar has mounted, so JS-capable visitors never see two navs.
+   Search crawlers that don't execute this script still see the
+   static nav in the raw HTML response.
+   --------------------------------------------------------------- */
+(function removeStaticCrawlNav() {
+  const el = document.getElementById('static-crawl-nav');
+  if (el) el.remove();
+})();
