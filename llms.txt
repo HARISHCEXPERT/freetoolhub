@@ -1,10 +1,10 @@
 # FreeToolHub
-> 81+ free browser-based online tools for developers, students, and professionals. No login, no data collection, works offline.
+> 114+ free browser-based online tools for developers, students, and professionals. No login, no data collection, works offline.
 
-FreeToolHub (https://freetoolhub.app) is a free tool website with 81+ utilities that run entirely in the browser using JavaScript. No signup, no login, no server — all processing happens locally on the user's device.
+FreeToolHub (https://freetoolhub.app) is a free tool website with 114+ utilities that run entirely in the browser using JavaScript. No signup, no login, no server — all processing happens locally on the user's device.
 
 ## Key Facts
-- 81+ free tools
+- 114+ free tools
 - Zero login or signup required
 - All tools run 100% in the browser
 - No data is ever uploaded to any server
@@ -33,6 +33,15 @@ Meta Tag Generator, Open Graph Generator, Twitter Card Generator, Robots.txt Gen
 
 ### Image Tools (6 tools)
 Image Resizer, Image Compressor, Image Format Converter, Rotate & Flip, Grayscale & Filters, Image to Base64
+
+### Science & Math Tools (13 tools)
+Chemical Equation Balancer, Molecular Weight Calculator, IUPAC Name Helper, Interactive Periodic Table, Physics Formula Reference, Binomial Theorem Expander, System of Linear Equations Solver, Matrix Calculator, Number Theory Tools, Polynomial Solver, Sequence & Series Calculator, Statistics Calculator, Trigonometry Calculator
+
+### PDF Tools (8 tools)
+PDF Merge, PDF Split, PDF Rotate, PDF Watermark, PDF Page Numbers, PDF Metadata Editor, PDF to Word, PDF Form Maker
+
+### India-specific Tools (4 tools)
+Income Tax Calculator, GST Calculator, Aadhar/PAN Format Helper, Invoice Generator
 
 ## Links
 - Homepage: https://freetoolhub.app
