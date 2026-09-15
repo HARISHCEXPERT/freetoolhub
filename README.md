@@ -27,4 +27,4 @@ Also building [BotSaathi](https://botsaathi.com) (WhatsApp automation for dealer
 
 ## License
 
-All rights reserved — this repo is public for transparency, not for reuse/redistribution.
+MIT License — free to use, modify, and distribute. See [LICENSE](LICENSE) for details.
