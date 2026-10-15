@@ -869,7 +869,7 @@ T('finance', 'fd', 'FD Calculator', 'Fixed deposit maturity (compound).', root =
   fields: [{ id: 'p', label: 'Principal (₹)', value: 100000 }, { id: 'r', label: 'Rate (% p.a.)', value: 7, step: '0.1' }, { id: 'y', label: 'Years', value: 5, step: '0.5' }, { id: 'n', label: 'Compounding', type: 'select', options: [['4', 'Quarterly'], ['12', 'Monthly'], ['2', 'Half-yearly'], ['1', 'Yearly']] }],
   compute: v => { const P = num(v.p), r = num(v.r) / 100, n = parseInt(v.n), t = num(v.y); if (!P) return errBox('Enter principal'); const A = P * Math.pow(1 + r / n, n * t); return bigResult(stat(money(A), 'Maturity value', true), stat(money(A - P), 'Interest earned')); },
 }));
-T('finance', 'rd', 'RD Calculator', 'Recurring deposit maturity (approx).', root => calcTool(root, {
+T('finance', 'rd', 'RD Calculator', 'Recurring deposit maturity amount and interest from monthly deposit, rate and months (approx).', root => calcTool(root, {
   button: 'Calculate', auto: true,
   fields: [{ id: 'm', label: 'Monthly deposit (₹)', value: 5000 }, { id: 'r', label: 'Rate (% p.a.)', value: 7, step: '0.1' }, { id: 'n', label: 'Months', value: 24 }],
   compute: v => { const M = num(v.m), i = num(v.r) / 1200, n = parseInt(v.n); if (!M || !n) return errBox('Enter deposit & months'); const fv = i ? M * (Math.pow(1 + i, n) - 1) / i * (1 + i) : M * n; const inv = M * n; return bigResult(stat(money(fv), 'Maturity value', true), stat(money(inv), 'Deposited'), stat(money(fv - inv), 'Interest')); },
@@ -1666,7 +1666,7 @@ T('student', 'trig-calc', 'Trigonometry Calculator', 'All trig functions, invers
 });
 
 /* ── Binomial Theorem Expander ── */
-T('student', 'binomial-expand', 'Binomial Theorem Expander', 'Expand (ax+by)ⁿ, find specific terms, Pascal\'s triangle row.', root => {
+T('student', 'binomial-expand', 'Binomial Expander', 'Binomial expansion calculator: expand (ax+by)ⁿ with every term, coefficient and the Pascal\'s triangle row.', root => {
   root.innerHTML = `<div class="tool-body">
     <div class="field-row">
       <div class="field"><label>a <span class="hint">(coefficient)</span></label><input class="fld" id="bi-a" type="number" step="any" value="1"></div>
@@ -1934,7 +1934,9 @@ T('student', 'chem-balancer', 'Chemical Equation Balancer', 'Balance chemical eq
     }
 
     // Convert to integers
-    const scale = 1000;
+    // find the smallest multiplier that turns every value into a whole number
+    let scale = 1;
+    while (scale < 20000 && !x.every(v => Math.abs(v * scale - Math.round(v * scale)) < 1e-6)) scale++;
     const ints = x.map(v => Math.round(v * scale));
     let g = ints.reduce((a,b) => gcd(Math.abs(a),Math.abs(b)));
     const coeffs = ints.map(v => Math.round(v/g));
@@ -3237,7 +3239,8 @@ function buildTool(id) {
   const tool = byId(id);
   if (!tool) { view.innerHTML = `<div class="home-cat-grid"><div class="empty-note">Tool not found. <a href="${homeHref()}">Go home</a>.</div></div>`; return; }
   const cat = CATS.find(c => c.id === tool.cat);
-  document.title = tool.name + ' — Free Online Tool | FreeToolHub';
+  // pages that ship their own hand-written <title> mark it with <meta name="ft-keep-title"> so JS does not overwrite it
+  if (!document.querySelector('meta[name="ft-keep-title"]')) document.title = tool.name + ' — Free Online Tool | FreeToolHub';
   view.innerHTML = `<div class="tool-view-wrap"><div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div></div>`;
   tool.render($('#tool-mount', view));
   const seo = document.getElementById('tool-seo');
