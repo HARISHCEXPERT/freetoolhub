@@ -31,8 +31,10 @@ CGPA Calculator, GPA Calculator, CGPA to Percentage, Attendance Calculator, Mark
 ### SEO & Web Tools (10 tools)
 Meta Tag Generator, Open Graph Generator, Twitter Card Generator, Robots.txt Generator, Slug Generator, UTM Builder, Keyword Density, FAQ Schema, Article Schema, Product Schema
 
-### Image Tools (6 tools)
-Image Resizer, Image Compressor, Image Format Converter, Rotate & Flip, Grayscale & Filters, Image to Base64
+### Image Tools (7 tools)
+Image Resizer, Image Compressor, Compress Image to Exact KB, Image Format Converter, Rotate & Flip, Grayscale & Filters, Image to Base64
+
+Compress Image to Exact KB (https://freetoolhub.app/tools/compress-to-kb) shrinks a photo or signature to a target file size in the browser. Ready-made size pages cover 10 KB to 2 MB for photos and 10 KB to 50 KB for signatures, for example https://freetoolhub.app/tools/compress-image-to-50kb and https://freetoolhub.app/tools/compress-signature-to-20kb.
 
 ### Science & Math Tools (13 tools)
 Chemical Equation Balancer, Molecular Weight Calculator, IUPAC Name Helper, Interactive Periodic Table, Physics Formula Reference, Binomial Theorem Expander, System of Linear Equations Solver, Matrix Calculator, Number Theory Tools, Polynomial Solver, Sequence & Series Calculator, Statistics Calculator, Trigonometry Calculator

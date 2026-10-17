@@ -2500,6 +2500,18 @@ function imageTool(root, cfg) {
     const canvas = document.createElement('canvas');
     const opts = cfg.read ? cfg.read(root) : {};
     cfg.draw(curImg, canvas, opts);
+    if (cfg.encode) {
+      /* async encoder hook: lets a tool search for the quality/size that meets a target file size */
+      $('#rinfo', root).textContent = '· working…';
+      cfg.encode(canvas, opts, curImg).then(res => {
+        const blob = res.blob;
+        lastBlob = blob; lastName = (cfg.name ? cfg.name(curFile, opts) : 'image.jpg');
+        $('#res', root).innerHTML = `<img class="preview-img" src="${URL.createObjectURL(blob)}">`;
+        $('#rinfo', root).textContent = `· ${res.w || canvas.width}×${res.h || canvas.height} · ${(blob.size / 1024).toFixed(1)} KB`;
+        if (cfg.afterBlob) cfg.afterBlob(root, blob, canvas, res);
+      }).catch(() => toast('Could not compress this image'));
+      return;
+    }
     const type = opts.mime || 'image/png';
     const q = opts.quality != null ? opts.quality : 0.92;
     canvas.toBlob(blob => {
@@ -2532,6 +2544,81 @@ T('image', 'image-compress', 'Image Compressor', 'Shrink JPG/WEBP file size.', r
   draw: (img, c) => { c.width = img.naturalWidth; c.height = img.naturalHeight; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0); },
   name: (f, o) => 'compressed-' + f.name.replace(/\.\w+$/, '') + (o.mime === 'image/webp' ? '.webp' : '.jpg'),
 }));
+/* Compress an image to a target file size in KB. One tool, reused by many size-specific
+   pages (tools/compress-image-to-50kb.html …) through <body data-kb="50" data-kind="photo">. */
+T('image', 'compress-to-kb', 'Compress Image to Exact KB', 'Shrink a photo or signature to a target size in KB.', root => {
+  const ds = document.body.dataset;
+  const kb0 = parseInt(ds.kb, 10) || 50;
+  const kind = ds.kind === 'signature' ? 'signature' : 'photo';
+  const fill = (c, w, h) => { const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); return x; };
+  imageTool(root, {
+    button: 'Compress',
+    extra: true,
+    controls: `<div class="field"><label>Target size (KB) <span class="hint">maximum</span></label><input class="fld" id="tkb" type="number" min="5" max="5000" value="${kb0}"></div>
+      <div class="field"><label>Width (px) <span class="hint">optional</span></label><input class="fld" id="tw" type="number" min="20" placeholder="keep original"></div>
+      <div class="field"><label>Height (px) <span class="hint">optional</span></label><input class="fld" id="th" type="number" min="20" placeholder="keep original"></div>`,
+    read: root => ({ kb: clamp(num($('#tkb', root).value) || kb0, 5, 5000), w: Math.round(num($('#tw', root).value)), h: Math.round(num($('#th', root).value)) }),
+    draw: (img, c, o) => {
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      if (o.w > 0 && o.h > 0) {
+        /* both sides typed: exact size, crop-to-fill so the picture is never stretched */
+        c.width = o.w; c.height = o.h;
+        const s = Math.max(o.w / iw, o.h / ih), sw = o.w / s, sh = o.h / s;
+        fill(c, o.w, o.h).drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, o.w, o.h);
+      } else {
+        /* one side typed: scale the other side to keep the aspect ratio */
+        let w = iw, h = ih;
+        if (o.w > 0) { w = o.w; h = Math.max(1, Math.round(ih * o.w / iw)); }
+        else if (o.h > 0) { h = o.h; w = Math.max(1, Math.round(iw * o.h / ih)); }
+        c.width = w; c.height = h;
+        fill(c, w, h).drawImage(img, 0, 0, w, h);
+      }
+    },
+    encode: async (canvas, o) => {
+      const limit = o.kb * 1024;
+      const fixedDims = o.w > 0 && o.h > 0;
+      const toBlob = (c, q) => new Promise(res => c.toBlob(res, 'image/jpeg', q));
+      const out = (blob, c, ok, round) => ({ blob, w: c.width, h: c.height, ok, scaled: round > 0 });
+      /* highest JPEG quality (between floor and 0.95) that fits under the limit, or { fail } if even the floor is too big */
+      const search = async (c, floor, round) => {
+        const top = await toBlob(c, 0.95);
+        if (top.size <= limit) return out(top, c, true, round);
+        const low = await toBlob(c, floor);
+        if (low.size > limit) return { fail: low };
+        let lo = floor, hi = 0.95, best = low;
+        for (let i = 0; i < 9; i++) {
+          const mid = (lo + hi) / 2, b = await toBlob(c, mid);
+          if (b.size <= limit) { best = b; lo = mid; } else hi = mid;
+        }
+        return out(best, c, true, round);
+      };
+      /* Keep quality at a decent level and shrink the picture instead; only when the user fixed the
+         dimensions (or the picture is already tiny) is quality allowed to drop all the way down. */
+      let work = canvas, round = 0, floor = fixedDims ? 0.05 : 0.45;
+      for (;;) {
+        const r = await search(work, floor, round);
+        if (!r.fail) return r;
+        if (fixedDims) return out(r.fail, work, false, round);
+        if (Math.min(work.width, work.height) < 120 || round >= 12) {
+          if (floor > 0.05) { floor = 0.05; continue; }
+          return out(r.fail, work, false, round);
+        }
+        const k = clamp(Math.sqrt(limit / r.fail.size) * 0.97, 0.4, 0.92);
+        const n = document.createElement('canvas');
+        n.width = Math.max(1, Math.round(work.width * k)); n.height = Math.max(1, Math.round(work.height * k));
+        n.getContext('2d').drawImage(work, 0, 0, n.width, n.height);
+        work = n; round++;
+      }
+    },
+    afterBlob: (root, blob, canvas, r) => {
+      const tgt = clamp(num($('#tkb', root).value) || kb0, 5, 5000), kb = (blob.size / 1024).toFixed(1);
+      $('#extra', root).innerHTML = r && r.ok
+        ? `<div class="status ok" style="margin-top:14px">✓ ${kb} KB — within your ${tgt} KB limit.${r.scaled ? ' The picture had to be scaled down to fit.' : ''}</div>`
+        : `<div class="status err" style="margin-top:14px">⚠ Could not reach ${tgt} KB at ${r ? r.w : canvas.width}×${r ? r.h : canvas.height} px (best result: ${kb} KB). Clear the width/height boxes or raise the limit.</div>`;
+    },
+    name: (f, o) => kind + '-' + o.kb + 'kb-' + f.name.replace(/\.\w+$/, '') + '.jpg',
+  });
+});
 T('image', 'image-convert', 'Image Format Converter', 'PNG ⇄ JPG ⇄ WEBP.', root => imageTool(root, {
   button: 'Convert',
   controls: `<div class="field"><label>Convert to</label><select class="fld" id="cfmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select></div>`,
@@ -3241,7 +3328,9 @@ function buildTool(id) {
   const cat = CATS.find(c => c.id === tool.cat);
   // pages that ship their own hand-written <title> mark it with <meta name="ft-keep-title"> so JS does not overwrite it
   if (!document.querySelector('meta[name="ft-keep-title"]')) document.title = tool.name + ' — Free Online Tool | FreeToolHub';
-  view.innerHTML = `<div class="tool-view-wrap"><div class="tool-head"><h1>${tool.name}</h1><p>${tool.desc}</p></div><div id="tool-mount"></div></div>`;
+  /* a page may override the visible heading/blurb with <body data-h1 data-desc> (used by the size-specific compressor pages) */
+  const headText = document.body.dataset.h1 || tool.name, headDesc = document.body.dataset.desc || tool.desc;
+  view.innerHTML = `<div class="tool-view-wrap"><div class="tool-head"><h1>${esc(headText)}</h1><p>${esc(headDesc)}</p></div><div id="tool-mount"></div></div>`;
   tool.render($('#tool-mount', view));
   const seo = document.getElementById('tool-seo');
   if (seo) {
