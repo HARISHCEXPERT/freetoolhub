@@ -153,6 +153,9 @@ FreeToolHub is a static website built in vanilla JavaScript. Tool processing hap
 - [Photo or signature rejected on a government form? Check these 7 things](https://freetoolhub.app/blog/photo-signature-rejected-fixes): Why exam and government portals reject a photo or signature even when the size looks right: minimum size, format, dimensions, filename and more, with fixes.
 - [UPSC photo and signature size: what the portal asks for](https://freetoolhub.app/blog/upsc-photo-signature-size): UPSC online application photo and signature file size and format, reported from the 2026 guidelines, with a link to the official instruction PDF and how to compress to fit.
 - [SSC CGL signature size, and why there is no photo to upload](https://freetoolhub.app/blog/ssc-cgl-signature-size): SSC CGL 2026: the signature is a 10 to 20 KB JPG, while the photo is captured live. Reported specs, source links and how to compress your signature to fit.
+- [Indian passport photo size: 4.5 x 3.5 cm, and when you need a photo at all](https://freetoolhub.app/blog/passport-photo-size-india): What the official Passport Seva instruction booklet says about the passport photo: size, background, face position, and why Seva Kendra applications need no photo.
+- [How to calculate molar mass: worked examples from H2O to Al2(SO4)3](https://freetoolhub.app/blog/how-to-calculate-molar-mass): Step-by-step molar mass calculation with five worked examples, how to handle brackets, the mass percent of each element, and converting grams to moles.
+- [How to balance a chemical equation: the method, three worked examples](https://freetoolhub.app/blog/balance-chemical-equations): A clear method for balancing chemical equations with three worked examples, plus the mistakes that make people lose marks and how to check your answer.
 - [All guides](https://freetoolhub.app/blog)
 
 ## Optional
