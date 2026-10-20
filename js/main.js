@@ -3163,6 +3163,7 @@ host.innerHTML = `
           <span class="brand-name">FreeToolHub</span>
         </a>
         <div class="topbar-links">
+          <a class="ghost-link" href="/blog">Guides</a>
           <a class="ghost-link" href="/about">About</a>
           <a class="ghost-link" href="/privacy">Privacy</a>
           <a class="ghost-link" href="/terms">Terms</a>
@@ -3270,6 +3271,7 @@ function buildHome() {
         </div>
         <p class="home-footer-desc">100+ free browser-based tools. No login, no data collection, works offline.</p>
         <div class="home-footer-links">
+          <a href="/blog">Guides</a>
           <a href="/about">About</a>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
