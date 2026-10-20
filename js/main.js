@@ -915,7 +915,7 @@ T('finance', 'margin', 'Margin Calculator', 'Profit, margin & markup.', root => 
   fields: [{ id: 'cost', label: 'Cost (₹)', value: 800 }, { id: 'price', label: 'Selling price (₹)', value: 1000 }],
   compute: v => { const c = num(v.cost), p = num(v.price), profit = p - c; if (!p) return errBox('Enter price'); return bigResult(stat(money(profit), 'Profit', true), stat(fmt(profit / p * 100) + '%', 'Margin'), stat(c ? fmt(profit / c * 100) + '%' : '—', 'Markup')); },
 }));
-T('finance', 'income-tax-calculator', 'Income Tax Calculator (Old vs New Regime)', 'Compare Old vs New tax regime, FY 2025-26 (AY 2026-27).', root => calcTool(root, {
+T('finance', 'income-tax-calculator', 'Income Tax Calculator (Old vs New Regime)', 'Compare Old vs New tax regime, FY 2026-27 (AY 2027-28).', root => calcTool(root, {
   button: 'Compare', auto: true,
   fields: [
     { id: 'gross', label: 'Gross Total Income (₹)', value: 900000 },
@@ -954,14 +954,29 @@ T('finance', 'income-tax-calculator', 'Income Tax Calculator (Old vs New Regime)
 
     const stdNew = 75000;
     const taxableNew = Math.max(0, gross - stdNew);
-    let taxNew = slabNew(taxableNew);
-    if (taxableNew <= 1200000) taxNew = 0;
+    // Surcharge with marginal relief (new regime tops out at 25%, old regime at 37%)
+    function withSurcharge(income, baseTaxFn, newRegime) {
+      const tiers = newRegime ? [[20000000, 0.25], [10000000, 0.15], [5000000, 0.10]] : [[50000000, 0.37], [20000000, 0.25], [10000000, 0.15], [5000000, 0.10]];
+      const base = baseTaxFn(income);
+      let rate = 0, floor = 0;
+      for (const [th, r] of tiers) { if (income > th) { rate = r; floor = th; break; } }
+      if (!rate) return base;
+      let total = base * (1 + rate);
+      // marginal relief: total tax + surcharge may not exceed tax at threshold + income above threshold
+      const prevTiers = tiers.filter(x => x[0] < floor).map(x => x[1]);
+      const prevRate = prevTiers.length ? prevTiers[0] : 0;
+      const atThreshold = baseTaxFn(floor) * (1 + prevRate);
+      total = Math.min(total, atThreshold + (income - floor));
+      return total;
+    }
+    const newBase = x => x <= 1200000 ? 0 : Math.min(slabNew(x), x - 1200000); // 87A rebate + marginal relief
+    const taxNew = withSurcharge(taxableNew, newBase, true);
     const finalNew = Math.round(taxNew * 1.04);
 
     const stdOld = 50000;
     const totalDed = ded80c + ded80d + hra + homeloan + nps + other + stdOld;
     const taxableOld = Math.max(0, gross - totalDed);
-    let taxOld = slabOld(taxableOld, exemption);
+    let taxOld = withSurcharge(taxableOld, x => slabOld(x, exemption), false);
     if (taxableOld <= 500000) taxOld = 0;
     const finalOld = Math.round(taxOld * 1.04);
 
