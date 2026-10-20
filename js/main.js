@@ -1856,125 +1856,117 @@ T('student', 'mol-weight', 'Molecular Weight Calculator', 'Enter any chemical fo
 
 /* ── Chemical Equation Balancer ── */
 T('student', 'chem-balancer', 'Chemical Equation Balancer', 'Balance chemical equations using linear algebra (Gaussian elimination).', root => {
-  const ELEMENTS = {H:1,He:2,Li:3,Be:4,B:5,C:6,N:7,O:8,F:9,Ne:10,Na:11,Mg:12,Al:13,Si:14,P:15,S:16,Cl:17,Ar:18,K:19,Ca:20,Fe:26,Cu:29,Zn:30,Ag:47,Au:79,Pb:82,Hg:80,Br:35,I:53,Mn:25,Cr:24,Co:27,Ni:28,Ti:22};
-
-  function parseFormula(s) {
+  /*CB-PURE-START*/
+  const ELEMENTS = new Set('H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og'.split(' '));
+  const add = (t, src, k) => { for (const e in src) t[e] = (t[e] || 0) + src[e] * k; };
+  function parseGroup(p) {
     const stack = [{}]; let i = 0;
-    while (i < s.length) {
-      if (s[i]==='(') { stack.push({}); i++; }
-      else if (s[i]===')') {
-        i++; let num=''; while(i<s.length&&/\d/.test(s[i]))num+=s[i++];
-        const cnt=num?parseInt(num):1, top=stack.pop();
-        Object.entries(top).forEach(([el,n])=>stack[stack.length-1][el]=(stack[stack.length-1][el]||0)+n*cnt);
-      } else if (/[A-Z]/.test(s[i])) {
-        let el=s[i++]; while(i<s.length&&/[a-z]/.test(s[i]))el+=s[i++];
-        let num=''; while(i<s.length&&/\d/.test(s[i]))num+=s[i++];
-        stack[stack.length-1][el]=(stack[stack.length-1][el]||0)+(num?parseInt(num):1);
-      } else i++;
+    const num = () => { let s = ''; while (i < p.length && /\d/.test(p[i])) s += p[i++]; return s ? parseInt(s, 10) : 1; };
+    while (i < p.length) {
+      const ch = p[i];
+      if (ch === '(' || ch === '[') { stack.push({}); i++; }
+      else if (ch === ')' || ch === ']') {
+        i++; const n = num();
+        if (stack.length < 2) throw new Error('Brackets do not match in "' + p + '"');
+        const top = stack.pop(); add(stack[stack.length - 1], top, n);
+      } else if (/[A-Z]/.test(ch)) {
+        let el = ch; i++;
+        if (i < p.length && /[a-z]/.test(p[i])) el += p[i++];
+        if (!ELEMENTS.has(el)) throw new Error('"' + el + '" is not an element symbol (check capital letters, e.g. Co is cobalt, CO is carbon monoxide)');
+        add(stack[stack.length - 1], { [el]: 1 }, num());
+      } else throw new Error('Unexpected "' + ch + '" in "' + p + '"');
     }
+    if (stack.length !== 1) throw new Error('Brackets do not match in "' + p + '"');
     return stack[0];
   }
-
-  function gcd(a,b){return b===0?Math.abs(a):gcd(b,a%b);}
-  function lcm(a,b){return a*b/gcd(a,b);}
-
-  function balance(eqn) {
-    // Parse into reactants and products
-    const [lhs, rhs] = eqn.split(/->|→|=/).map(s=>s.trim());
-    if (!rhs) throw new Error('Use -> or = to separate reactants and products');
-    const reactants = lhs.split('+').map(s=>s.trim());
-    const products = rhs.split('+').map(s=>s.trim());
-    const compounds = [...reactants, ...products];
-    const nR = reactants.length, nP = products.length, nC = compounds.length;
-
-    // Get all elements
-    const allEls = [...new Set(compounds.flatMap(c => Object.keys(parseFormula(c))))];
-    const nE = allEls.length;
-
-    // Build matrix: rows=elements, cols=compounds (reactants negative in balance sense)
-    // We solve Ax=0 where A[i][j] = count of element i in compound j (negative for products)
-    const M = allEls.map(el =>
-      compounds.map((c,j) => {
-        const cnt = parseFormula(c)[el] || 0;
-        return j < nR ? cnt : -cnt;
-      })
-    );
-
-    // Add constraint: first coefficient = 1 (fix x[0]=1, solve for rest)
-    // Gaussian elimination on augmented [M | 0]
-    // Use rational arithmetic approximation
-    const rows = M.length, cols = nC;
-    const aug = M.map(r => [...r, 0]);
-
-    // Forward elimination
-    let pivotRow = 0;
-    for (let col = 0; col < cols && pivotRow < rows; col++) {
-      let maxR = pivotRow;
-      for (let r = pivotRow+1; r < rows; r++) if (Math.abs(aug[r][col]) > Math.abs(aug[maxR][col])) maxR = r;
-      if (Math.abs(aug[maxR][col]) < 1e-9) continue;
-      [aug[pivotRow], aug[maxR]] = [aug[maxR], aug[pivotRow]];
-      for (let r = 0; r < rows; r++) {
-        if (r === pivotRow || Math.abs(aug[r][col]) < 1e-12) continue;
-        const f = aug[r][col] / aug[pivotRow][col];
-        for (let k = 0; k <= cols; k++) aug[r][k] -= f * aug[pivotRow][k];
-      }
-      pivotRow++;
+  function parseFormula(s) {
+    s = s.replace(/\s+/g, '');
+    if (!s) throw new Error('Empty compound');
+    const total = {};
+    for (let part of s.split(/[·•*]/)) {
+      let mult = 1; const m = part.match(/^(\d+)(.*)$/);
+      if (m) { mult = parseInt(m[1], 10); part = m[2]; }
+      add(total, parseGroup(part), mult);
     }
-
-    // Find null space (free variable = last column)
-    // Set last compound coefficient = 1, back-solve
-    const x = new Array(nC).fill(0);
-    x[nC-1] = 1;
-    for (let r = pivotRow-1; r >= 0; r--) {
-      let pivCol = -1;
-      for (let c = 0; c < nC; c++) if (Math.abs(aug[r][c]) > 1e-9) { pivCol = c; break; }
-      if (pivCol === -1) continue;
-      x[pivCol] = -aug[r][nC] / aug[r][pivCol];
-      for (let c = pivCol+1; c < nC; c++) x[pivCol] -= (aug[r][c] / aug[r][pivCol]) * x[c];
-    }
-
-    // Convert to integers
-    // find the smallest multiplier that turns every value into a whole number
-    let scale = 1;
-    while (scale < 20000 && !x.every(v => Math.abs(v * scale - Math.round(v * scale)) < 1e-6)) scale++;
-    const ints = x.map(v => Math.round(v * scale));
-    let g = ints.reduce((a,b) => gcd(Math.abs(a),Math.abs(b)));
-    const coeffs = ints.map(v => Math.round(v/g));
-    if (coeffs.some(c => c <= 0)) {
-      // Try negating
-      const neg = coeffs.map(c => -c);
-      if (neg.every(c => c > 0)) return {coeffs: neg, reactants, products, compounds};
-      throw new Error('Could not find positive integer coefficients. Try simplifying the equation.');
-    }
-    return {coeffs, reactants, products, compounds};
+    return total;
   }
+  const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+  const fr = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return [n / g, d / g]; };
+  const fsub = (a, b) => fr(a[0] * b[1] - b[0] * a[1], a[1] * b[1]);
+  const fmul = (a, b) => fr(a[0] * b[0], a[1] * b[1]);
+  const fdiv = (a, b) => fr(a[0] * b[1], a[1] * b[0]);
+  function balance(eqn) {
+    const sides = eqn.split(/->|→|=>|=/);
+    if (sides.length !== 2) throw new Error('Use -> or = to separate reactants and products');
+    const side = t => t.split('+').map(x => x.trim()).filter(Boolean).map(x => x.replace(/^\d+\s*/, ''));
+    const reactants = side(sides[0]), products = side(sides[1]);
+    if (!reactants.length || !products.length) throw new Error('Put at least one compound on each side');
+    const compounds = [...reactants, ...products], nR = reactants.length;
+    const counts = compounds.map(parseFormula);
+    const els = [...new Set(counts.flatMap(c => Object.keys(c)))];
+    for (const e of els) {
+      if (!counts.slice(0, nR).some(c => c[e])) throw new Error('"' + e + '" appears only on the product side, so the equation cannot be balanced');
+      if (!counts.slice(nR).some(c => c[e])) throw new Error('"' + e + '" appears only on the reactant side, so the equation cannot be balanced');
+    }
+    const n = compounds.length;
+    const M = els.map(e => counts.map((c, j) => fr((c[e] || 0) * (j < nR ? 1 : -1))));
+    let r = 0; const piv = [];
+    for (let c = 0; c < n && r < M.length; c++) {
+      let p = -1; for (let i = r; i < M.length; i++) if (M[i][c][0] !== 0) { p = i; break; }
+      if (p < 0) continue;
+      [M[r], M[p]] = [M[p], M[r]];
+      const pv = M[r][c]; M[r] = M[r].map(x => fdiv(x, pv));
+      for (let i = 0; i < M.length; i++) if (i !== r && M[i][c][0] !== 0) { const f = M[i][c]; M[i] = M[i].map((x, k) => fsub(x, fmul(f, M[r][k]))); }
+      piv.push(c); r++;
+    }
+    const free = []; for (let c = 0; c < n; c++) if (!piv.includes(c)) free.push(c);
+    if (free.length === 0) throw new Error('This equation cannot be balanced. Check the formulas.');
+    if (free.length > 1) throw new Error('This equation has more than one independent solution (it is really two or more reactions combined). Split it up and balance each reaction.');
+    const f = free[0], sol = new Array(n); sol[f] = fr(1);
+    piv.forEach((c, i) => { sol[c] = fr(-M[i][f][0], M[i][f][1]); });
+    let l = 1; sol.forEach(x => { l = l * x[1] / gcd(l, x[1]); });
+    const ints = sol.map(x => x[0] * (l / x[1]));
+    if (ints.some(x => x <= 0)) throw new Error('No solution with positive whole numbers. Check the formulas.');
+    const g = ints.reduce((a, b) => gcd(a, b));
+    const coeffs = ints.map(x => x / g);
+    const check = els.map(e => ({ el: e, left: counts.slice(0, nR).reduce((s, c, i) => s + (c[e] || 0) * coeffs[i], 0), right: counts.slice(nR).reduce((s, c, i) => s + (c[e] || 0) * coeffs[nR + i], 0) }));
+    return { coeffs, reactants, products, compounds, check };
+  }
+  /*CB-PURE-END*/
 
   root.innerHTML = `<div class="tool-body">
     <div class="field"><label>Chemical equation</label>
       <input class="fld" id="cb-eq" placeholder="e.g. Fe + O2 -> Fe2O3" spellcheck="false" value="Fe + O2 -> Fe2O3"></div>
     <div class="row"><button class="btn primary" id="cb-go">Balance</button></div>
-    <div class="note-box">Use <code>-></code> or <code>=</code> to separate sides. Use <code>+</code> between compounds.</div>
+    <div class="note-box">Use <code>-></code> or <code>=</code> to separate sides and <code>+</code> between compounds. Brackets like Ca(OH)2 and hydrates like CuSO4·5H2O work. Capital letters matter: Co is cobalt, CO is carbon monoxide.</div>
     <div id="cb-out"></div>
   </div>`;
 
-  $('#cb-go',root).onclick = () => {
+  const sub = s => esc(s).replace(/(\d+)/g, '<sub>$1</sub>');
+  const run = () => {
     try {
-      const {coeffs, reactants, products, compounds} = balance($('#cb-eq',root).value);
+      const { coeffs, reactants, products, compounds, check } = balance($('#cb-eq', root).value);
       const nR = reactants.length;
-      const fmtCompound = (c, coeff) => (coeff===1?'':coeff) + c;
-      const lhs = reactants.map((c,i) => fmtCompound(c,coeffs[i])).join(' + ');
-      const rhs = products.map((c,i) => fmtCompound(c,coeffs[nR+i])).join(' + ');
-      $('#cb-out',root).innerHTML = `
+      const fmtCompound = (c, coeff) => (coeff === 1 ? '' : coeff + ' ') + sub(c);
+      const lhs = reactants.map((c, i) => fmtCompound(c, coeffs[i])).join(' + ');
+      const rhs = products.map((c, i) => fmtCompound(c, coeffs[nR + i])).join(' + ');
+      $('#cb-out', root).innerHTML = `
         <div class="result">
-          <div class="note-box" style="font-size:15px;font-weight:500;text-align:center;padding:16px;margin-bottom:12px">
-            ${esc(lhs)} → ${esc(rhs)}
+          <div class="note-box" style="font-size:17px;font-weight:600;text-align:center;padding:16px;margin-bottom:12px">
+            ${lhs} → ${rhs}
           </div>
-          <table class="kvtable"><tbody>
-            ${compounds.map((c,i) => `<tr><td>${c}</td><td><b>coefficient = ${coeffs[i]}</b></td></tr>`).join('')}
+          <table class="kvtable"><thead><tr><td><b>Compound</b></td><td><b>Coefficient</b></td></tr></thead><tbody>
+            ${compounds.map((c, i) => `<tr><td>${sub(c)}</td><td><b>${coeffs[i]}</b></td></tr>`).join('')}
+          </tbody></table>
+          <h3 style="font-size:14px;margin:16px 0 6px">Atom count check</h3>
+          <table class="kvtable"><thead><tr><td><b>Element</b></td><td><b>Left</b></td><td><b>Right</b></td><td></td></tr></thead><tbody>
+            ${check.map(x => `<tr><td>${esc(x.el)}</td><td>${x.left}</td><td>${x.right}</td><td>${x.left === x.right ? '✓' : '✕'}</td></tr>`).join('')}
           </tbody></table>
         </div>`;
-    } catch(e) { $('#cb-out',root).innerHTML = errBox(e.message); }
+    } catch (e) { $('#cb-out', root).innerHTML = errBox(e.message); }
   };
+  $('#cb-go', root).onclick = run;
+  $('#cb-eq', root).addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
 });
 
 /* ── IUPAC Name Helper ── */

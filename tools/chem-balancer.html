@@ -24,7 +24,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231b1a17'/><polygon points='50,8 82,26 82,62 50,80 18,62 18,26' fill='none' stroke='%23ec5a13' stroke-width='5'/><polygon points='50,24 68,34 68,54 50,64 32,54 32,34' fill='%23ec5a13'/><text x='50' y='56' font-size='22' text-anchor='middle' fill='white' font-family='system-ui' font-weight='700'>FT</text></svg>" />
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://freetoolhub.app/"},{"@type":"ListItem","position":2,"name":"Student Tools","item":"https://freetoolhub.app/#student"},{"@type":"ListItem","position":3,"name":"Chemical Equation Balancer","item":"https://freetoolhub.app/tools/chem-balancer"}]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Chemical Equation Balancer","applicationCategory":"EducationApplication","operatingSystem":"Any (web browser)","description":"Free chemical equation balancer. Enter an unbalanced equation like Al + HCl -> AlCl3 + H2 and get the balanced equation with all coefficients.","url":"https://freetoolhub.app/tools/chem-balancer","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does the chemical equation balancer work?","acceptedAnswer":{"@type":"Answer","text":"It counts the atoms of each element, writes the balance condition as linear equations and solves them with Gaussian elimination. Then it scales the solution to the smallest whole numbers."}},{"@type":"Question","name":"What format should I use for the equation?","acceptedAnswer":{"@type":"Answer","text":"Separate compounds with + and the two sides with -> or =. Example: Al + HCl -> AlCl3 + H2. Use correct capitalisation and brackets for groups such as (OH)2."}},{"@type":"Question","name":"Can it balance redox equations?","acceptedAnswer":{"@type":"Answer","text":"It can balance any equation that is written without ionic charges, including ones like KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O. Equations that need charges or half-reaction methods are not supported."}},{"@type":"Question","name":"Why do I get an error about positive integer coefficients?","acceptedAnswer":{"@type":"Answer","text":"That usually means a formula is mistyped, a product or reactant is missing, or the equation cannot be balanced as written. Check each formula and the capital letters."}},{"@type":"Question","name":"Is the balanced answer unique?","acceptedAnswer":{"@type":"Answer","text":"For most simple equations yes. The tool returns the smallest whole-number set of coefficients."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does the chemical equation balancer work?","acceptedAnswer":{"@type":"Answer","text":"It counts the atoms of each element, writes the balance condition as linear equations and solves them with Gaussian elimination. Then it scales the solution to the smallest whole numbers."}},{"@type":"Question","name":"What format should I use for the equation?","acceptedAnswer":{"@type":"Answer","text":"Separate compounds with + and the two sides with -> or =. Example: Al + HCl -> AlCl3 + H2. Use correct capitalisation and brackets for groups such as (OH)2."}},{"@type":"Question","name":"Can it balance redox equations?","acceptedAnswer":{"@type":"Answer","text":"It can balance any equation that is written without ionic charges, including ones like KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O. Equations that need charges or half-reaction methods are not supported."}},{"@type":"Question","name":"Why do I get an error about positive integer coefficients?","acceptedAnswer":{"@type":"Answer","text":"That usually means a formula is mistyped, a product or reactant is missing, or the equation cannot be balanced as written. Check each formula and the capital letters."}},{"@type":"Question","name":"Does it work for all elements?","acceptedAnswer":{"@type":"Answer","text":"Yes, any element symbol from the periodic table is accepted, including barium, tin and platinum. Capital letters matter: Co is cobalt, while CO is carbon monoxide."}},{"@type":"Question","name":"Is the balanced answer unique?","acceptedAnswer":{"@type":"Answer","text":"For most simple equations yes. The tool returns the smallest whole-number set of coefficients."}}]}</script>
 </head>
 <body data-tool="chem-balancer">
   <nav class="page-nav" id="static-crawl-nav">
@@ -57,7 +57,7 @@
       <ol>
         <li>Type the unbalanced equation, with <code>+</code> between compounds and <code>-></code> or <code>=</code> between the two sides, for example <code>Fe + O2 -> Fe2O3</code>.</li>
         <li>Write formulas with capital letters in the right places, such as Ca(OH)2 or H3PO4. Brackets are supported.</li>
-        <li>Click <strong>Balance</strong> to see the balanced equation and the coefficient of every compound.</li>
+        <li>Click <strong>Balance</strong> to see the balanced equation, the coefficient of every compound, and an atom-count table that shows each element is equal on both sides.</li>
       </ol>
     </div>
     <div class="seo-block">
@@ -78,7 +78,7 @@
     </div>
     <div class="seo-block">
       <h2>What it cannot do</h2>
-      <p>The balancer does not read ionic charges (such as Fe3+ or SO4 2−), the dot in hydrates, or state symbols like (s) and (g). Write a hydrate as CuSO4(H2O)5 and leave the charges and states out. If an equation has no solution in positive whole numbers, for example because a compound is missing or mistyped, the tool says so instead of guessing.</p>
+      <p>The balancer does not read ionic charges (such as Fe3+ or SO4 2−) or state symbols like (s) and (g), so leave them out. Hydrates work, for example CuSO4·5H2O -> CuSO4 + H2O, and every element from hydrogen to oganesson is recognised. If an element appears on only one side, or the equation has no solution in positive whole numbers, the tool tells you why instead of guessing. For a step-by-step method you can do on paper, read <a href="/blog/balance-chemical-equations">how to balance a chemical equation</a>.</p>
     </div>
     <div class="seo-block">
       <h2>Next step: moles and masses</h2>
@@ -90,6 +90,7 @@
       <details><summary>What format should I use for the equation?</summary><p>Separate compounds with + and the two sides with -> or =. Example: Al + HCl -> AlCl3 + H2. Use correct capitalisation and brackets for groups such as (OH)2.</p></details>
       <details><summary>Can it balance redox equations?</summary><p>It can balance any equation that is written without ionic charges, including ones like KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O. Equations that need charges or half-reaction methods are not supported.</p></details>
       <details><summary>Why do I get an error about positive integer coefficients?</summary><p>That usually means a formula is mistyped, a product or reactant is missing, or the equation cannot be balanced as written. Check each formula and the capital letters.</p></details>
+      <details><summary>Does it work for all elements?</summary><p>Yes, any element symbol from the periodic table is accepted, including barium, tin and platinum. Capital letters matter: Co is cobalt, while CO is carbon monoxide.</p></details>
       <details><summary>Is the balanced answer unique?</summary><p>For most simple equations yes. The tool returns the smallest whole-number set of coefficients.</p></details>
     </div>
     <div class="seo-block">
@@ -99,7 +100,7 @@
 
       <div class="seo-block related-tools">
   <h2>Related tools</h2>
-  <div class="related-tools-links"><a href="/tools/sequences">Sequence & Series</a><a href="/tools/attendance">Attendance Calculator</a><a href="/tools/binomial-expand">Binomial Theorem Expander</a><a href="/tools/trig-calc">Trigonometry Calculator</a><a href="/tools/gpa">GPA Calculator</a></div>
+  <div class="related-tools-links"><a href="/tools/mol-weight">Molecular Weight Calculator</a><a href="/tools/periodic-table">Interactive Periodic Table</a><a href="/tools/iupac-helper">IUPAC Name Helper</a><a href="/blog/balance-chemical-equations">Guide: balancing equations</a><a href="/blog/how-to-calculate-molar-mass">Guide: molar mass</a></div>
 </div>
 </section>
 
