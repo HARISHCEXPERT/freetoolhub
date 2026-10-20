@@ -1,52 +1,158 @@
 # FreeToolHub
-> 114+ free browser-based online tools for developers, students, and professionals. No login, no data collection, works offline.
 
-FreeToolHub (https://freetoolhub.app) is a free tool website with 114+ utilities that run entirely in the browser using JavaScript. No signup, no login, no server — all processing happens locally on the user's device.
+> 135+ free online tools for students, developers and professionals: PDF tools, image compression to an exact size in KB, finance and India-specific calculators, chemistry and math solvers. Everything runs in the browser with no signup.
 
-## Key Facts
-- 114+ free tools
-- Zero login or signup required
-- All tools run 100% in the browser
-- No data is ever uploaded to any server
-- Works offline after first load
-- Free forever
+FreeToolHub is a static website built in vanilla JavaScript. Tool processing happens locally on the visitor's device, and files are not uploaded to a server. Each tool has its own page at https://freetoolhub.app/tools/<name>.
 
-## Tool Categories
+## PDF Tools
 
-### Developer Tools (19 tools)
-JSON Formatter, JSON Validator, JSON Minifier, JSON to CSV, JSON to XML, JSON Diff, XML Formatter, YAML to JSON, SQL Formatter, Base64 Encode/Decode, URL Encode/Decode, UUID Generator, Regex Tester, JWT Decoder, Hash Generator, Unix Timestamp Converter, Color Converter, HTML Escape/Unescape, Markdown Preview
+- [PDF Merger](https://freetoolhub.app/tools/pdf-merge)
+- [PDF Splitter](https://freetoolhub.app/tools/pdf-split)
+- [PDF Page Rotator](https://freetoolhub.app/tools/pdf-rotate)
+- [PDF Watermark](https://freetoolhub.app/tools/pdf-watermark)
+- [PDF Page Numbers](https://freetoolhub.app/tools/pdf-page-numbers)
+- [PDF Metadata Viewer](https://freetoolhub.app/tools/pdf-metadata)
+- [PDF to Word Converter](https://freetoolhub.app/tools/pdf-to-word)
+- [PDF Form Maker](https://freetoolhub.app/tools/pdf-form-maker)
+- [Image to PDF Converter](https://freetoolhub.app/tools/image-to-pdf)
+- [Images to PDF](https://freetoolhub.app/tools/images-to-pdf)
 
-### Text Tools (18 tools)
-Word Counter, Character Counter, Case Converter, Remove Duplicate Lines, Sort Lines, Reverse Text, Find & Replace, Remove Blank Lines, Text Cleaner, CSV to JSON, JSON to CSV, Word Frequency, Reading Time, Text Splitter, Remove Emojis, Email Extractor, URL Extractor, Phone Extractor
+## Image Tools
 
-### Everyday Tools (10 tools)
-Password Generator, Lorem Ipsum, Random Number, Age Calculator, Percentage Calculator, Unit Converter, Date Calculator, Stopwatch, Countdown Timer, Pomodoro Timer
+- [Compress Image to Exact KB Online Free — Photo & Signature Size Reducer](https://freetoolhub.app/tools/compress-to-kb)
+- [Image Compressor](https://freetoolhub.app/tools/image-compress)
+- [Image Compressor — Reduce File Size](https://freetoolhub.app/tools/image-compressor)
+- [Image Resizer](https://freetoolhub.app/tools/image-resize)
+- [Image Format Converter](https://freetoolhub.app/tools/image-convert)
+- [Rotate & Flip](https://freetoolhub.app/tools/image-rotate-flip)
+- [Grayscale & Filters](https://freetoolhub.app/tools/image-grayscale)
+- [Image → Base64](https://freetoolhub.app/tools/image-base64)
+- [Passport Size Photo Maker](https://freetoolhub.app/tools/passport-photo)
+- [Compress Image to 50 KB](https://freetoolhub.app/tools/compress-image-to-50kb): one of 20 size-specific pages for photos (10 KB to 2 MB)
+- [Compress Signature to 20 KB](https://freetoolhub.app/tools/compress-signature-to-20kb): one of 5 size-specific pages for signatures (10 KB to 50 KB)
 
-### Finance Tools (13 tools)
-EMI Calculator, SIP Calculator, FD Calculator, RD Calculator, Compound Interest, Simple Interest, GST Calculator, Discount Calculator, ROI Calculator, CAGR Calculator, Break-even Calculator, Margin Calculator, Salary Converter
+## Science & Math Tools
 
-### Student Tools (5 tools)
-CGPA Calculator, GPA Calculator, CGPA to Percentage, Attendance Calculator, Marks/Grade Calculator
+- [Chemical Equation Balancer: Balance Equations Online](https://freetoolhub.app/tools/chem-balancer)
+- [Molecular Weight Calculator: Molar Mass & MW Calculator](https://freetoolhub.app/tools/mol-weight)
+- [IUPAC Name Helper](https://freetoolhub.app/tools/iupac-helper)
+- [Interactive Periodic Table](https://freetoolhub.app/tools/periodic-table)
+- [Physics Formula Reference](https://freetoolhub.app/tools/physics-formulas)
+- [Binomial Expander: Free Binomial Expansion Calculator](https://freetoolhub.app/tools/binomial-expand)
+- [Linear System Solver](https://freetoolhub.app/tools/linear-system)
+- [Matrix Calculator](https://freetoolhub.app/tools/matrix-calc)
+- [Number Theory Tools](https://freetoolhub.app/tools/number-theory)
+- [Polynomial Equation Solver](https://freetoolhub.app/tools/poly-solver)
+- [Sequence & Series](https://freetoolhub.app/tools/sequences)
+- [Statistics Calculator](https://freetoolhub.app/tools/stats-calc)
+- [Trigonometry Calculator](https://freetoolhub.app/tools/trig-calc)
 
-### SEO & Web Tools (10 tools)
-Meta Tag Generator, Open Graph Generator, Twitter Card Generator, Robots.txt Generator, Slug Generator, UTM Builder, Keyword Density, FAQ Schema, Article Schema, Product Schema
+## Finance & India Tools
 
-### Image Tools (7 tools)
-Image Resizer, Image Compressor, Compress Image to Exact KB, Image Format Converter, Rotate & Flip, Grayscale & Filters, Image to Base64
+- [EMI Calculator](https://freetoolhub.app/tools/emi)
+- [SIP Calculator](https://freetoolhub.app/tools/sip)
+- [FD Calculator](https://freetoolhub.app/tools/fd)
+- [RD Calculator: Recurring Deposit Maturity & Interest Calculator](https://freetoolhub.app/tools/rd)
+- [GST Calculator](https://freetoolhub.app/tools/gst)
+- [GST Calculator India](https://freetoolhub.app/tools/gst-calculator)
+- [Income Tax Calculator (Old vs New Regime)](https://freetoolhub.app/tools/income-tax-calculator)
+- [Compound Interest](https://freetoolhub.app/tools/compound-interest)
+- [Simple Interest](https://freetoolhub.app/tools/simple-interest)
+- [Discount Calculator](https://freetoolhub.app/tools/discount)
+- [ROI Calculator](https://freetoolhub.app/tools/roi)
+- [CAGR Calculator](https://freetoolhub.app/tools/cagr)
+- [Break-even Calculator](https://freetoolhub.app/tools/breakeven)
+- [Margin Calculator](https://freetoolhub.app/tools/margin)
+- [Salary Converter](https://freetoolhub.app/tools/salary)
+- [Invoice Generator](https://freetoolhub.app/tools/invoice-generator)
+- [Aadhar & PAN Card Form Helper](https://freetoolhub.app/tools/aadhar-pan-helper)
 
-Compress Image to Exact KB (https://freetoolhub.app/tools/compress-to-kb) shrinks a photo or signature to a target file size in the browser. Ready-made size pages cover 10 KB to 2 MB for photos and 10 KB to 50 KB for signatures, for example https://freetoolhub.app/tools/compress-image-to-50kb and https://freetoolhub.app/tools/compress-signature-to-20kb.
+## Student Tools
 
-### Science & Math Tools (13 tools)
-Chemical Equation Balancer, Molecular Weight Calculator, IUPAC Name Helper, Interactive Periodic Table, Physics Formula Reference, Binomial Theorem Expander, System of Linear Equations Solver, Matrix Calculator, Number Theory Tools, Polynomial Solver, Sequence & Series Calculator, Statistics Calculator, Trigonometry Calculator
+- [CGPA Calculator](https://freetoolhub.app/tools/cgpa)
+- [GPA Calculator](https://freetoolhub.app/tools/gpa)
+- [CGPA → Percentage](https://freetoolhub.app/tools/cgpa-to-percent)
+- [Attendance Calculator](https://freetoolhub.app/tools/attendance)
+- [Marks / Grade Calculator](https://freetoolhub.app/tools/marks)
+- [Resume Builder](https://freetoolhub.app/tools/resume-builder)
 
-### PDF Tools (8 tools)
-PDF Merge, PDF Split, PDF Rotate, PDF Watermark, PDF Page Numbers, PDF Metadata Editor, PDF to Word, PDF Form Maker
+## Developer Tools
 
-### India-specific Tools (4 tools)
-Income Tax Calculator, GST Calculator, Aadhar/PAN Format Helper, Invoice Generator
+- [JSON Formatter](https://freetoolhub.app/tools/json-formatter)
+- [JSON Validator](https://freetoolhub.app/tools/json-validator)
+- [JSON Minifier](https://freetoolhub.app/tools/json-minifier)
+- [JSON Diff](https://freetoolhub.app/tools/json-diff)
+- [JSON → CSV](https://freetoolhub.app/tools/json-to-csv)
+- [JSON → CSV](https://freetoolhub.app/tools/json-to-csv-text)
+- [JSON → XML](https://freetoolhub.app/tools/json-to-xml)
+- [CSV → JSON](https://freetoolhub.app/tools/csv-to-json)
+- [YAML → JSON](https://freetoolhub.app/tools/yaml-to-json)
+- [XML Formatter](https://freetoolhub.app/tools/xml-formatter)
+- [SQL Formatter](https://freetoolhub.app/tools/sql-formatter)
+- [Base64 Encode / Decode](https://freetoolhub.app/tools/base64)
+- [Number Base Converter](https://freetoolhub.app/tools/base-converter)
+- [URL Encode / Decode](https://freetoolhub.app/tools/url-encode)
+- [UUID Generator](https://freetoolhub.app/tools/uuid)
+- [Regex Tester](https://freetoolhub.app/tools/regex-tester)
+- [JWT Decoder](https://freetoolhub.app/tools/jwt-decoder)
+- [Hash Generator](https://freetoolhub.app/tools/hash-generator)
+- [Unix Timestamp Converter](https://freetoolhub.app/tools/unix-timestamp)
+- [Color Converter](https://freetoolhub.app/tools/color-converter)
+- [HTML Escape / Unescape](https://freetoolhub.app/tools/html-escape)
+- [Markdown Preview](https://freetoolhub.app/tools/markdown-preview)
+- [QR Code Generator](https://freetoolhub.app/tools/qr-generator)
 
-## Links
-- Homepage: https://freetoolhub.app
-- About: https://freetoolhub.app/about
-- Privacy Policy: https://freetoolhub.app/privacy
-- Dev.to Article: https://dev.to/harishcexpert/i-built-81-free-browser-based-tools-in-vanilla-js-no-login-no-server-no-bs-563m
+## Text Tools
+
+- [Word Counter](https://freetoolhub.app/tools/word-counter)
+- [Character Counter](https://freetoolhub.app/tools/char-counter)
+- [Case Converter](https://freetoolhub.app/tools/case-converter)
+- [Remove Duplicate Lines](https://freetoolhub.app/tools/remove-duplicate-lines)
+- [Sort Lines](https://freetoolhub.app/tools/sort-lines)
+- [Reverse Text](https://freetoolhub.app/tools/reverse-text)
+- [Find & Replace](https://freetoolhub.app/tools/find-replace)
+- [Remove Blank Lines](https://freetoolhub.app/tools/remove-blank-lines)
+- [Text Cleaner](https://freetoolhub.app/tools/text-cleaner)
+- [Word Frequency](https://freetoolhub.app/tools/word-frequency)
+- [Reading Time](https://freetoolhub.app/tools/reading-time)
+- [Text Splitter](https://freetoolhub.app/tools/text-splitter)
+- [Remove Emojis](https://freetoolhub.app/tools/remove-emojis)
+- [Email Extractor](https://freetoolhub.app/tools/email-extractor)
+- [URL Extractor](https://freetoolhub.app/tools/url-extractor)
+- [Phone Extractor](https://freetoolhub.app/tools/phone-extractor)
+- [Lorem Ipsum](https://freetoolhub.app/tools/lorem-ipsum)
+- [Slug Generator](https://freetoolhub.app/tools/slug)
+- [Keyword Density](https://freetoolhub.app/tools/keyword-density)
+
+## SEO & Web Tools
+
+- [Meta Tag Generator](https://freetoolhub.app/tools/meta-tags)
+- [Open Graph Generator](https://freetoolhub.app/tools/open-graph)
+- [Twitter Card Generator](https://freetoolhub.app/tools/twitter-card)
+- [Robots.txt Generator](https://freetoolhub.app/tools/robots-txt)
+- [UTM Builder](https://freetoolhub.app/tools/utm-builder)
+- [FAQ Schema](https://freetoolhub.app/tools/faq-schema)
+- [Article Schema](https://freetoolhub.app/tools/article-schema)
+- [Product Schema](https://freetoolhub.app/tools/product-schema)
+- [SERP Snippet Preview](https://freetoolhub.app/tools/serp-preview)
+
+## Everyday Tools
+
+- [Password Generator](https://freetoolhub.app/tools/password-generator)
+- [Random Number](https://freetoolhub.app/tools/random-number)
+- [Age Calculator](https://freetoolhub.app/tools/age-calculator)
+- [Percentage Calculator](https://freetoolhub.app/tools/percentage-calculator)
+- [Unit Converter](https://freetoolhub.app/tools/unit-converter)
+- [Date Calculator](https://freetoolhub.app/tools/date-calculator)
+- [Stopwatch](https://freetoolhub.app/tools/stopwatch)
+- [Countdown Timer](https://freetoolhub.app/tools/timer)
+- [Pomodoro Timer](https://freetoolhub.app/tools/pomodoro)
+
+## Optional
+
+- [About](https://freetoolhub.app/about)
+- [Privacy Policy](https://freetoolhub.app/privacy)
+- [Terms](https://freetoolhub.app/terms)
+- [Sitemap](https://freetoolhub.app/sitemap.xml)
+- [Source code on GitHub](https://github.com/HARISHCEXPERT/freetoolhub)
+- [Dev.to article](https://dev.to/harishcexpert/i-built-81-free-browser-based-tools-in-vanilla-js-no-login-no-server-no-bs-563m6)
