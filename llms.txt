@@ -158,6 +158,10 @@ FreeToolHub is a static website built in vanilla JavaScript. Tool processing hap
 - [How to balance a chemical equation: the method, three worked examples](https://freetoolhub.app/blog/balance-chemical-equations): A clear method for balancing chemical equations with three worked examples, plus the mistakes that make people lose marks and how to check your answer.
 - [All guides](https://freetoolhub.app/blog)
 
+## Widgets
+
+- [Chemistry calculator widget](https://freetoolhub.app/embed): Free embeddable molar mass calculator and equation balancer for websites.
+
 ## Optional
 
 - [About](https://freetoolhub.app/about)

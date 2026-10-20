@@ -28,3 +28,7 @@ Also building [BotSaathi](https://botsaathi.com) (WhatsApp automation for dealer
 ## License
 
 MIT License — free to use, modify, and distribute. See [LICENSE](LICENSE) for details.
+
+## Embed the chemistry widgets
+
+Free molar mass calculator and equation balancer you can put on any page, no code needed. Copy-paste snippets: https://freetoolhub.app/embed

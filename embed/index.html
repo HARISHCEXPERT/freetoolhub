@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Chemistry Calculator Widget for Your Website | FreeToolHub</title>
+<meta name="description" content="Add a free molar mass calculator or chemical equation balancer to your website, blog or LMS. Copy one line of HTML, no signup, no API key, no code to write.">
+<link rel="canonical" href="https://freetoolhub.app/embed">
+<link rel="icon" href="../favicon.ico">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.emb{max-width:860px;margin:0 auto;padding:24px 16px 60px;color:var(--ink)}
+.emb h1{font-family:var(--display);font-size:2rem;margin:.2em 0}
+.emb h2{font-family:var(--display);margin-top:2em}
+.emb p,.emb li{line-height:1.65}
+.code{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font-size:13px;white-space:pre-wrap;word-break:break-all;margin:8px 0}
+.copy{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--accent);color:#fff;cursor:pointer;font:inherit;margin-bottom:12px}
+.preview{margin:12px 0}
+.emb iframe{width:100%;border:1px solid var(--line);border-radius:10px}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Free Chemistry Calculator Widget","url":"https://freetoolhub.app/embed","description":"Embeddable molar mass calculator and chemical equation balancer for websites."}</script>
+</head>
+<body>
+<nav class="page-nav" id="static-crawl-nav">
+  <a href="/" class="page-nav-brand">FreeToolHub</a>
+  <div class="page-nav-links"><a href="/">All Tools</a><a href="/blog">Guides</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
+</nav>
+<main class="emb">
+<h1>Free chemistry calculator widget for your website</h1>
+<p>Teachers, tutors, bloggers and course creators can put a working <a href="/tools/mol-weight">molar mass calculator</a> or <a href="/tools/chem-balancer">chemical equation balancer</a> on their own page. Copy one block of HTML, paste it where you want the tool, done. It is free, needs no signup or API key, and works in WordPress, Blogger, Wix, Notion-style HTML blocks and any LMS that allows an HTML embed.</p>
+
+<h2>1. Molar mass calculator</h2>
+<p>Type a formula such as H2O, Ca(OH)2 or CuSO4·5H2O and get the molar mass with a per-element breakdown.</p>
+<div class="preview"><iframe src="/embed/chem.html" height="420" title="Molar Mass Calculator preview" loading="lazy"></iframe></div>
+<pre class="code" id="c1">&lt;iframe src=&quot;https://freetoolhub.app/embed/chem.html&quot; width=&quot;100%&quot; height=&quot;420&quot; style=&quot;border:1px solid #e2e8f0;border-radius:10px&quot; loading=&quot;lazy&quot; title=&quot;Molar Mass Calculator&quot;&gt;&lt;/iframe&gt;</pre><button class="copy" data-for="c1">Copy code</button>
+
+<h2>2. Chemical equation balancer</h2>
+<p>Enter an unbalanced equation such as Fe + O2 -> Fe2O3 and get the balanced version, solved with exact fractions.</p>
+<div class="preview"><iframe src="/embed/chem.html?tool=balancer" height="340" title="Equation Balancer preview" loading="lazy"></iframe></div>
+<pre class="code" id="c2">&lt;iframe src=&quot;https://freetoolhub.app/embed/chem.html?tool=balancer&quot; width=&quot;100%&quot; height=&quot;340&quot; style=&quot;border:1px solid #e2e8f0;border-radius:10px&quot; loading=&quot;lazy&quot; title=&quot;Chemical Equation Balancer&quot;&gt;&lt;/iframe&gt;</pre><button class="copy" data-for="c2">Copy code</button>
+
+<h2>Auto-resizing version (optional)</h2>
+<p>If you want the box to grow and shrink to fit its content, use this instead. Change <code>molar-mass</code> to <code>balancer</code> for the equation balancer.</p>
+<pre class="code" id="c3">&lt;div data-fth-chem data-tool=&quot;molar-mass&quot;&gt;&lt;/div&gt;
+&lt;script src=&quot;https://freetoolhub.app/embed/embed.js&quot; async&gt;&lt;/script&gt;</pre><button class="copy" data-for="c3">Copy code</button>
+
+<h2>How to paste it</h2>
+<ul>
+<li><strong>WordPress:</strong> add a "Custom HTML" block and paste the code.</li>
+<li><strong>Blogger:</strong> in the post editor switch to HTML view and paste.</li>
+<li><strong>Wix / Squarespace / Google Sites:</strong> use the "Embed code" or "HTML" element.</li>
+<li><strong>Moodle / other LMS:</strong> paste into the HTML source of a page or label.</li>
+</ul>
+
+<h2>Good to know</h2>
+<ul>
+<li>The widget runs in the visitor's browser. Nothing they type is sent to a server.</li>
+<li>It includes a small credit link back to FreeToolHub. Please keep it.</li>
+<li>Want a different tool as a widget? <a href="/about">Tell us</a>.</li>
+</ul>
+<p>More chemistry help: <a href="/blog/how-to-calculate-molar-mass">how to calculate molar mass</a> and <a href="/blog/balance-chemical-equations">how to balance a chemical equation</a>.</p>
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.onclick=function(){var t=document.getElementById(b.dataset.for).textContent;
+ (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied'},function(){var r=document.createRange();r.selectNodeContents(document.getElementById(b.dataset.for));var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Press Ctrl+C'});
+ setTimeout(function(){b.textContent='Copy code'},2000)}});
+</script>
+</body>
+</html>

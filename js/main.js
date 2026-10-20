@@ -3282,6 +3282,7 @@ function buildHome() {
         <p class="home-footer-desc">100+ free browser-based tools. No login, no data collection, works offline.</p>
         <div class="home-footer-links">
           <a href="/blog">Guides</a>
+          <a href="/embed">Embed widget</a>
           <a href="/about">About</a>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
