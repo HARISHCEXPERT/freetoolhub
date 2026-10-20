@@ -1702,11 +1702,10 @@ T('student', 'binomial-expand', 'Binomial Expander', 'Binomial expansion calcula
   };
 
   $('#bi-go',root).onclick = () => {
-    const a = parseFloat($('#bi-a',root).value)||1;
-    const b = parseFloat($('#bi-b',root).value)||1;
-    const xp = parseInt($('#bi-xp',root).value)||1;
-    const yp = parseInt($('#bi-yp',root).value)||1;
-    const n = parseInt($('#bi-n',root).value)||4;
+    const rd = (id, d, int) => { const v = int ? parseInt($(id,root).value) : parseFloat($(id,root).value); return Number.isFinite(v) ? v : d; };
+    const a = rd('#bi-a', 1), b = rd('#bi-b', 1);
+    const xp = Math.max(0, rd('#bi-xp', 1, true)), yp = Math.max(0, rd('#bi-yp', 1, true));
+    const n = Math.min(20, Math.max(0, rd('#bi-n', 4, true)));
     const terms = [];
     let expansion = '';
     for (let k=0; k<=n; k++) {
@@ -1716,12 +1715,16 @@ T('student', 'binomial-expand', 'Binomial Expander', 'Binomial expansion calcula
       const xExp = aPow*xp, yExp = bPow*yp;
       const xPart = xExp===0?'':(xExp===1?'x':`x^${xExp}`);
       const yPart = yExp===0?'':(yExp===1?'y':`y^${yExp}`);
-      const term = `${Math.abs(coeff)===1&&(xPart||yPart)?'':(coeff<0&&k>0?Math.abs(coeff):Math.abs(coeff))}${xPart}${yPart}`;
-      expansion += (k===0?(coeff<0?'-':''):`${coeff<0?' - ':' + '}`) + term;
-      terms.push({ k, C, coeff, term: `${coeff<0?'-':''}${term}`, xExp, yExp });
+      const vars = xPart + yPart;
+      const mag = Math.abs(coeff);
+      const term = (mag===1 && vars) ? vars : `${+mag.toPrecision(12)}${vars}`;
+      terms.push({ k, C, coeff, term: `${coeff<0?'-':''}${term}`, xExp, yExp, vars, mag });
+      if (coeff===0) continue;
+      expansion += (expansion===''?(coeff<0?'-':''):(coeff<0?' - ':' + ')) + term;
     }
+    if (expansion==='') expansion = '0';
     const rows = terms.map(t =>
-      `<tr><td>k=${t.k}</td><td>C(${n},${t.k})=${t.C}</td><td style="font-family:var(--mono)">${t.coeff>=0?'+':'-'}${Math.abs(t.coeff)}${t.xExp?`x^${t.xExp}`:''}${t.yExp?`y^${t.yExp}`:''}</td></tr>`
+      `<tr><td>k=${t.k}</td><td>C(${n},${t.k})=${t.C}</td><td style="font-family:var(--mono)">${t.coeff<0?'-':'+'}${+t.mag.toPrecision(12)}${t.vars}</td></tr>`
     ).join('');
     const pascal = Array.from({length:n+1},(_,k)=>binom(n,k)).join('  ');
     $('#bi-out',root).innerHTML = `
